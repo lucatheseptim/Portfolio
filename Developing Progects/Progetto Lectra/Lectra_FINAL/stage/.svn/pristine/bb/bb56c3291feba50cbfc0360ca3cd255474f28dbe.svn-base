@@ -1,0 +1,48 @@
+
+.container-riepilogo{
+    margin: 50px auto;
+    position: relative;
+    top: -50px;
+}
+
+#riepilogo-conferma-ordine{
+    padding: 15px;
+    background-color: #023047;
+    color: white;
+    width: 130px;
+    font-weight: bolder;
+    margin: -15px auto;
+    cursor: pointer;
+}
+
+#aggiungi-nuova-camicia{
+    padding: 18px;
+    background-color: #023047;
+    color: white;
+    width: 312px;
+    font-weight: bolder;
+    margin: 0px auto;
+    cursor: pointer;
+} 
+/*dimensione dell'icone trash*/
+i#modifica{
+    font-size: 30px;
+    width:30px;
+    cursor: pointer;
+   
+}
+i#elimina{
+    font-size: 30px;
+    width:30px;
+    cursor: pointer;
+    
+}
+i#duplica{
+    font-size:30px;
+    width:30px;
+    cursor: pointer;
+}
+
+
+
+

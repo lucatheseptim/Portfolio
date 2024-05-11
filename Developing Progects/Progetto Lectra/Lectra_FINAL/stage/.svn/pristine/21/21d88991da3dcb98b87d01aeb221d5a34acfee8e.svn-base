@@ -1,0 +1,11 @@
+<?php
+
+/*
+if($_SESSION["auth"] != true){ // se non esiste la sessione o è diversa da 1 
+    header("Location: login.php");  
+}else{ 
+    echo("ciao"); 
+}
+*/
+
+

@@ -1,0 +1,142 @@
+
+.input-invio-spedizione{
+
+    margin: 6px;
+    border: 5px solid #023047;
+    background: white;
+    width: 300px;
+    margin-bottom: 100px;  
+}
+
+.container-information {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    height: 500px; 
+   /*  margin: 0px -21px; */
+
+}
+
+#table-tot-spedizione{
+    display: flex;
+    justify-content: left;
+    padding: 10px; 
+}
+
+.checkbox-corpo {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+    left: 27px;
+}
+
+.indietro{
+    padding: 15px;
+    background-color: #023047;
+    color: white;
+    width: 130px;
+    font-weight: bolder;
+    cursor: pointer;
+}
+
+
+.table_dark {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  font-size: 14px;
+  width: 400px;
+  background: #252F48;
+  height: 300px;
+}
+
+td{
+    text-align: center;
+}
+
+th{
+    text-align: center;
+}
+
+/* tr,th,td{
+
+    padding: 7px 17px;
+}
+ */
+.td_header{
+
+    text-align: left;
+}
+
+.td_totale{
+ 
+    text-align:left;
+}
+
+.table_dark th {
+
+  color: #fff;
+  padding: 12px 17px; 
+  font-weight: bolder;
+}
+
+.table_dark ,th ,.td_totale ,tr{
+
+  color: #CAD4D6; 
+/*   border-bottom: 1px solid #37B5A5;
+  border-right:2px solid #37B5A5;
+  border-left:2px solid #37B5A5; */
+} 
+
+.table-position{ 
+    position: relative;
+    bottom: 35px;
+    margin: 50px 0px;
+}
+ 
+.indirizzo_cliente{
+    border: 3px solid #023047; 
+    background: white;
+    width: 300px;
+    height: 35px;
+    margin:6px;
+}
+
+.spedizione_cliente {
+    width: 350px;
+    height: 275px;
+    margin: 50px auto;
+    text-align: left;
+}
+#conferma-spedizione-ordine{
+    padding: 15px;
+    background-color: #023047;
+    color: white;
+    width: 180px;
+    font-weight: bolder;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+input#corpo_check_privacy {
+    width: 4rem;
+    height: 1.5rem;
+    margin: 0 11px;
+}
+td .td_totale{
+    font-size: 18px;
+    font-weight: bolder;
+    padding: 12px 17px;
+    text-align: left ; 
+} 
+#indirizzo-spedizione-finale{
+    border: 3px solid #023047;
+    background: white;
+    width: 300px; 
+    height: 35px;
+    margin: 6px;
+}
+
+
+
+
+
+

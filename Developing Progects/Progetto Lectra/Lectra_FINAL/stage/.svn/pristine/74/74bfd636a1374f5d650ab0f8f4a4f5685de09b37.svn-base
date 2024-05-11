@@ -1,0 +1,296 @@
+body {
+    /*background: #023047;*/
+    font-family: 'Roboto', sans-serif;
+}
+ .container-selezione_all:not(.container-selezione_componenti){
+    margin: 0 auto;
+    text-align: center;
+    padding: 60px;
+    padding-bottom: 50px;
+} 
+.container-selezione_componenti{
+    margin: 0 auto;
+    text-align: center;
+    padding-bottom: 50px;
+    padding: 0px 60px 0px 60px;
+}
+
+.cont-but{
+    text-align: center;
+    position: relative;
+    bottom: 30px;
+}
+.container-selezione_collo{
+    display: none;
+}
+.container-selezione_taglie{
+    display: none;
+}
+.container-selezione_materiali{
+    display: none;
+}
+.container-selezione_componenti{
+    display: none;
+}
+.container-selezione_bottoni{
+    display: none;
+}
+.container-selezione_alterazioni{
+    display: none;
+}
+.container-scelta_alterazioni_corpo{
+    display: none;
+}
+.container-scelta_alterazioni_spalle{
+    display: none;
+}
+.container-scelta_alterazioni_torace{
+    display: none;
+}
+.container-scelta_alterazioni_vita{
+    display: none;
+}
+.container-scelta_alterazioni_bacino{
+    display: none;
+}
+.container-selezione_ricami{
+    display: none;
+}
+.container-selezione_davanti{
+    display: none;
+}
+.blu-btn{
+    width: 230px;
+    color: white;
+    background-color: #023047;
+    margin: 18px auto;
+    font-weight: bolder;
+    padding: 8px;
+    font-size: 20px;
+    cursor: pointer;
+}
+.funzioni{
+    display: flex;
+    justify-content: center;
+}
+.orange-btn{
+    width: 240px;
+    color: #023047;
+    font-weight: bolder;
+    padding: 5px;
+    font-size: 20px;
+    margin: 15px;
+    cursor: pointer;
+    border: 5px solid #023047;
+}
+.form-switch .form-check-input {
+    width: 6em;
+    height: 2em;
+    margin-left: -22px;
+    border:5px solid #023047;
+
+}
+.checkbox-button{
+    display: flex;
+    justify-content: center;
+    padding: 50px;
+}
+.img_bottoni{
+    height: 130px;
+}
+.corpo_davanti, .corpo_dietro{
+    display: none;
+}
+.checkbox-corpo{
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+}
+h2.corpo_entrambi{
+    margin-top: 30px;
+}
+h2.corpo_davanti{
+    margin-top: 30px;
+}
+h2.corpo_dietro{
+    margin-top: 30px;
+}
+.row_ric{
+    display: flex;
+    justify-content: flex-start;
+    padding: 20px;
+}
+.iniziali{
+    width: 50px;
+    text-align: center;
+    text-transform:uppercase;
+    margin: 0 10px 0 10px;
+}
+.btn_color_lettere, .btn_color_simbolo{
+    width: 80px;
+    height: 40px;
+    border: 1px solid black;
+    margin: 0 10px 0 10px;
+    opacity: 25%;
+    cursor: pointer;
+}
+.grigio{
+    background-color: #50575f;
+}
+.bianco{
+    background-color: #fff;
+}
+.blu{
+    background-color: #2a3551;
+}
+.verde{
+    background-color: #285f3b;
+}
+.rosso{
+    background-color: #bd3532;
+}
+#conferma-ricami{
+    margin: 40px auto;
+}
+.scelta_ricami h3{
+    margin-right: 50px;
+    text-align: left;
+    width: 100px;
+}
+.posizione{
+    margin: 0 10px 0 10px;
+    padding: 5px;
+}
+.posizione_simbolo{
+    margin: 0 10px 0 10px;
+    padding: 5px;
+}
+.simbolo{
+    margin: 0 5px 0 5px;
+}
+.stile{
+    margin: 0 5px 0 5px;
+}
+.active_simbolo{
+    border: 2px solid #023047;
+}
+.active_color{
+    opacity: 100%;
+    border: 2px solid black;
+}
+.active_color_simbolo{
+    opacity: 100%;
+    border: 2px solid black;
+}
+.active_posizione_simbolo{
+    border: 2px solid #023047;
+}
+.active_posizione{
+    border: 2px solid #023047;
+}
+.ordine_simbolo{
+    display: none;
+}
+.active_stile{
+    border: 2px solid #023047;
+}
+#ordine_simbolo{
+    width: 200px;
+}
+.w-50{
+    width:46.5%!important;
+}
+
+select{
+    border: 3px solid #023047;
+    background: white;
+    width: 400px;
+    height: 60px;
+}
+.titolo{
+    color: #023047;
+    margin-bottom: 100px;
+}
+.conferma{
+    padding: 15px;
+    background-color: #023047;
+    color: white;
+    width: 130px;
+    font-weight: bolder;
+    margin: 100 auto;
+    cursor: pointer;
+}
+.conferma-camicia{
+    padding: 15px;
+    background-color: #023047;
+    color: white;
+    width: 130px;
+    font-weight: bolder;
+    margin: 30px auto;
+    cursor: pointer;
+}
+.cut_img {
+    width: 500px;
+    height: 500px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+.cut_img img {
+    transform: scale(1.6);
+    margin: 0 auto;
+}
+
+.desc_shirt{
+    position: relative;
+}
+
+h1#dietro {
+    transform: translateY(-30px);
+    width: 151px;
+    margin: 8px auto;
+}
+
+.seleziona-davanti-camicia{
+    padding: 15px;
+    background-color: #023047;
+    color: #fff;
+    width: 200px;
+    font-weight: bolder;
+    cursor: pointer;
+    margin: 0px auto;
+    position: relative;
+    bottom: 7.5rem;
+}
+ul#info_scelte{
+    border: 1px solid #023047;
+   /*  position: absolute; */
+   position: relative;
+    top: 11rem;
+    font-size: 15px;
+    padding: 0 30px;
+    margin: 0px 8px;
+    border-radius: 5px;
+    width: 261px;
+}
+.container_info{
+    max-height: 1px;
+}
+.white{
+    color: #fff;
+    text-transform: uppercase;
+}
+.black{
+    text-transform: uppercase;  
+}
+.scelte_checkbox{
+    width: 105px;
+    height: 105px;
+    padding: 30px;
+    background-color: #023047;
+    color: white;
+    margin: 10px;
+}
+.container_scelte{
+    display: flex;
+    justify-content: center;
+}

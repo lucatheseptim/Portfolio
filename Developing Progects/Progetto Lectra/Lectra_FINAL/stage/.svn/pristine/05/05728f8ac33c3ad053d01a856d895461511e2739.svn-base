@@ -1,0 +1,16 @@
+<?php
+require_once ("include/base.php");
+
+$page = new Template ("templates/base.html");
+$content = new Template ("templates/ordini_taglio.html");
+
+$page->title = "Ordini taglio";
+
+$page->scripts = "<script src='js/ordini_taglio.js?v=0.1'></script>";
+
+$page->style = "<link rel='stylesheet' href='css/ordini_taglio.css'>";
+
+
+$page->content = $content->out();
+echo $page->out();
+?>

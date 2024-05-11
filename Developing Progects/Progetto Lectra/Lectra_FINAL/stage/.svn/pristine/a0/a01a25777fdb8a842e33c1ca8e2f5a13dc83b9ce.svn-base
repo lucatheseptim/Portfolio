@@ -1,0 +1,147 @@
+
+/* .cliente_esistente{
+    display: block;
+}
+.nuovo_cliente{
+    display: none;
+} */ 
+
+#logout_utente{
+
+    left:20px;
+    top:20px;
+}  
+
+
+#create-account{
+    padding: 15px;
+    background-color: #023047;
+    color:#fff;
+    width: 150px;
+    font-weight: bolder;
+    cursor: pointer;
+    margin: 50px auto;
+    text-transform: uppercase;
+    position: relative;
+    bottom: -3rem;
+}
+.email#Email{
+    border: 3px solid #023047;
+    background: white;
+    width: 400px;
+    height: 60px;
+}
+#errorValidation .error{
+    color: red;
+    font-size: 1rem;
+    display: block;
+    margin-top: 5px;
+}
+.checkbox{
+    cursor: pointer;
+    background: #eee;
+    width: 50px;
+    height: 20px;
+    visibility: hidden;
+  
+}
+.checkbox:checked ~ .label_checkbox{
+   /*  border: 1px solid transparent; */
+    color: #fff;
+    background-color: #023047;
+    font-weight: bolder;
+}
+.label_checkbox{
+    border: 5px solid #023047 ;
+    padding: 5px;
+    min-width: 200px;
+}
+#utente{
+    margin: 0px auto;
+    text-align: center;
+    padding: 0;
+    padding-bottom: 0;
+    height: 450px;
+}
+div#cliente_esistente {
+    position: relative;
+    top: 27px;
+}
+.check_cliente {
+    text-align: center;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+}
+ /*=====new client======*/
+.nuovo_cliente input:not([type="radio"]):not([type="submit"]):not([type="checkbox"]){
+    border: 3px solid #023047;
+    background: white;
+    width: 300px;
+    height: 35px;
+}
+/* input.genere[type="radio"]{
+    width: 17px;
+    margin: -40px 2px;
+    position: relative;
+    top: 22px;
+    right: -12px;
+} */
+span.sex{
+    position: relative;
+    bottom: 1px;
+    left: 0px;
+    font-size: 16px;
+}
+.new_account input#create-account{
+    padding: 15px;
+    background-color: #023047;
+    color: white;
+    width: 170px;
+    font-weight: bolder;
+    cursor: pointer;
+    margin: 100px auto;
+}
+.nuovo_cliente {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+   /* grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); */
+    grid-gap: 10px;
+    position: relative;
+    bottom: 30px;
+}
+.consenso_cliente {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    font-size: 14px;
+}
+.check{
+    position: relative;
+    top: 12px;
+    left: 122px;
+    cursor: pointer;
+    background: #eee;
+    width: 50px;
+    height: 13px;
+    margin: -5px;
+}
+.nuovo_cliente label{
+    float: left;
+    position: relative;
+    left: 107px;
+}
+#indietro-create-account {
+    position: absolute;
+    top: 4rem;
+    left: 1 rem;
+}
+.selectInfo{
+    width: 300px;
+    height: 35px;
+}
+select#naz {
+    width: 300px;
+    height: 35px;
+}

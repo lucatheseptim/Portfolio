@@ -1,0 +1,62 @@
+<?php 
+
+session_start(); 
+
+$_SESSION['user'] = false; // la mia sessione parte da false 
+
+if($_SESSION['user']){ // se è true 
+
+    header("Location: ./index.php"); 
+}
+
+?>
+<script type="text/javascript">
+src="https://code.jquery.com/jquery-3.6.0.min.js"
+integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+crossorigin="anonymous"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js'></script>
+<script src='https://unpkg.com/sweetalert/dist/sweetalert.min.js'></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+<script src="./js/ordine.js"></script>
+<script src="./js/spedizione.js"></script>
+<script src="./js/form.js"></script>
+<script src="./js/riepilogo_camicie.js"></script>
+<script src="./js/lectra.js">
+
+var sessione = ""; // parte da vuota 
+
+$(document).ready(() => {
+    console.log("login.js ready");
+    $("#loginbutton").click(() => { 
+        
+        window.location.href = "./index.php";
+        
+        $.ajax({
+            url: "./../../init.php", 
+            method: "POST",
+            dataType: "json",
+            data: {
+                action: "login",
+                val_codcom: $("input[name=codcom]").val(),
+                val_password: $("input[name=password]").val(),
+                val_codneg: $("input[name=codneg]").val()
+            }
+        }).done((res) => {
+            console.log(res);
+            if(res.output.success === 1){
+
+                <?php $_SESSION['user'] = true; ?>  // se va il Login va in Done , setto una variabile di Sessione a true
+                console.log(res);
+                console.log("redirect to" + $("input[name=redirect]").val());
+
+                // window.location.href = $("input[name=redirect]").val();
+                //window.location.href = "./index.php";
+            }else{
+                $("#error_box").html(res.output.error);
+            }
+        });
+        
+    });
+});
+</script>
+

@@ -1,0 +1,33 @@
+$(document).ready(function(){
+    console.log("ordini_taglio");
+
+    parseRequestGetAllOrders();
+});
+
+// Requests
+
+function parseRequestGetAllOrders(){
+    $.ajax({
+        url: "./../../init.php",
+        method: "POST",
+        dataType: "json",
+        data: {
+            action: "get_orders"
+        }
+    }).done(function(res){
+        console.log(res);
+        if(res.output.success == 1){
+            parseResponseGetAllOrders(res.output.data);
+        }else{
+            swal("Errore recupero ordini","Errore" + res.output.error, "warning");
+        }
+    }).fail(function(){
+        swal("Errore recupero ordini","Errore", "warning");
+    });
+}
+
+
+// Responses
+function parseResponseGetAllOrders(orders){
+
+}

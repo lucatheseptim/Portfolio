@@ -1,0 +1,154 @@
+<?php
+require_once ("/var/www/html/lectra/stage/Models.php");
+// require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/autoload.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/Barcode.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/BarcodeBar.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/BarcodeGenerator.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/BarcodeGeneratorHTML.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/BarcodeGeneratorPNG.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/BarcodeGeneratorJPG.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/Types/TypeInterface.php");
+require_once ("/var/www/html/lectra/stage/lib/php-barcode-generator/src/Types/TypeCode128.php");
+
+use Picqer\Barcode\BarcodeGeneratorHTML;
+use Picqer\Barcode\BarcodeGeneratorJPG;
+use Picqer\Barcode\Types\TypeCode128;
+
+/**
+ * Service per la creazione delle bolle di lavorazione dei prodotti
+ * (da migliorare la performance con le join)
+ */
+class BollaLavorazioneService {
+    const IMG_COMP_FOLDER_PATH = "/var/www/html/lectra/stage/view/LectraOrdine/imgs/image_componenti/";
+    const IMG_BARCODE_FOLDER_PATH = "/var/www/html/lectra/stage/view/LectraBackoffice/img/barcodes_generati/";
+
+    protected $product_order;
+    protected $barcode_generator;
+
+    public function __construct($prod_order_id){
+        $this->product_order = ProductOrder::find($prod_order_id);
+        if(!$this->product_order){
+            new Exception("Prodotto inesistente");
+        }
+        $this->barcode_generator = new BarcodeGeneratorHTML();
+        $this->barcode_generator = new BarcodeGeneratorJPG();
+    }
+    /**
+     * Genera la bolla di lavorazione per il prodotto
+     * @return string Stringa HTML con la bolla di lavorazione
+     */
+    public function getHtmlBollaLavorazione(){
+        $html_body = '<table style="font-size: 10px; width: 600px">';
+        // Testata
+        $html_body .= $this->getHeadBolla();
+        // Body
+        $html_body .= $this->getBodyBolla();
+
+        $html_body .= "</table>";
+
+        return $html_body;
+    }
+
+    protected function getHeadBolla(){
+        $ord = Order::find($this->product_order->order_id);
+
+        return "<tr><th><strong>Bolla lavorazione - Fasonista FD3</strong>".
+            "</th><th colspan=2>Data: ".$ord->orderDate." / Ordine: ".$this->product_order->barcode_univoco."</th></tr>".
+            "<tr><th colspan=3><br></th></tr>";
+    }
+
+    protected function getBodyBolla(){
+        $html_body = "";
+        // Componenti
+        $componenti = ProductOrderComponent::where("order_product_id", $this->product_order->id);
+        $cells = array();
+        foreach ($componenti as $prod_comp){
+            $component = Component::find($prod_comp->component_id);
+            $tip_comp = TipologyComponent::find($component->component_type_id);
+            $codice_comp = $component->getCodiceComponente();
+            $cells[] = "<div style='margin: 0 auto'><center>".
+                "<strong>".strtoupper($tip_comp->label)."</strong><br>".
+                "<strong>".$codice_comp."</strong><br>".
+                $this->getImgComponente($codice_comp)."<br>".
+                $component->descrizione."<br>".
+                "</center></div>";
+        }
+        // Bottoni Madre Perla
+        // Etichetta
+        // Tela Collo
+        // Tela Polso
+        // Ricami + materiali vari
+        $ricami_prod = ProductOrderDettaglio::whereRaw(
+            "order_product_id = :prod_id AND tipo IN (:tip1, :tip2)",
+            array(":prod_id" => $this->product_order->id, ":tip1" => ProductOrderDettaglio::TIPO_RIC_TESTO, ":tip2" => ProductOrderDettaglio::TIPO_RIC_SIMBOLO)
+        );
+        $ricamo_html = "<div style='margin: 0 auto'><center><strong>RICAMO:</strong><br><br><br>";
+        if($ricami_prod && !empty($ricami_prod)){
+            foreach ($ricami_prod as $ricamo){
+                $ricamo_html .= $this->getHtmlRicamo($ricamo)."<br>";
+            }
+        }
+        $ricamo_html .= "</center></div>";
+        $cells[] = $ricamo_html;
+        // Care label + Barcode interno
+        // Barcode Etichetta
+        $img_barcode_path = $this->saveImgBarcode($this->product_order->barcode_univoco);
+        $cells[] = "<div style='height: 90px'><strong>Barcode Etichetta:</strong><br><br><br>".
+            // $this->barcode_generator->getBarcode($this->product_order->barcode_univoco, BarcodeGeneratorHTML::TYPE_CODE_128)."<br>".
+            // '<img src="data:image/png;base64,'.base64_encode($this->barcode_generator->getBarcode($this->product_order->barcode_univoco, BarcodeGeneratorHTML::TYPE_CODE_128)).'" /><br>'.
+            '<img src="'.$img_barcode_path.'" />'.
+            $this->product_order->barcode_univoco."</div>";
+        // Componi tabella
+        $i = 0;
+        $html_body .= "<tr>";
+        foreach ($cells as $c){
+            $html_body .= '<td style="border: 3px solid pink; width: 202px; text-align: center">'.$c.'</td>';
+            if( $i++ == 2 ){
+                $i = 0;
+                $html_body .= "</tr><tr>";
+            }
+        }
+        $html_body .= "</tr>";
+
+        return $html_body;
+    }
+
+    protected function getImgComponente($cod_componente){
+        return '<img alt="img-$cod_componente" src="'.self::IMG_COMP_FOLDER_PATH.$cod_componente.'.jpg" width="120" height="90"/>';
+    }
+
+    protected function getHtmlRicamo($ricamo){
+        $html_body = "<div>";
+        if($ricamo->tipo == ProductOrderDettaglio::TIPO_RIC_TESTO){
+            $html_body .= "Testo: ".$ricamo->testo."<br>".
+                "Stile: ".$this->getOpzioneRicamoDescrizione($ricamo->stile_testo)."<br>".
+                "Posizione: ".$this->getOpzioneRicamoDescrizione($ricamo->posizione)."<br>".
+                "Colore: ".$this->getOpzioneRicamoDescrizione($ricamo->colore)."<br>".
+                "</div>";
+        }else{
+            $html_body .= "Testo: ".$this->getOpzioneRicamoDescrizione($ricamo->simbolo)."<br>".
+                "Posizione: ".$this->getOpzioneRicamoDescrizione($ricamo->posizione)."<br>".
+                "Colore: ".$this->getOpzioneRicamoDescrizione($ricamo->colore)."<br>";
+            if(!is_null($ricamo->ordine_simbolo)){
+                $html_body .= "Ordine: ".$this->getOpzioneRicamoDescrizione($ricamo->ordine_simbolo)."<br>";
+            }
+        }
+        $html_body .= "</div>";
+
+        return $html_body;
+    }
+
+    protected function getOpzioneRicamoDescrizione($option_id){
+
+    }
+
+    protected function saveImgBarcode($barcode){
+        $img_path = self::IMG_BARCODE_FOLDER_PATH.$barcode.".jpg";
+        file_put_contents(
+            $img_path,
+            $this->barcode_generator->getBarcode($barcode, BarcodeGeneratorHTML::TYPE_CODE_128)
+        );
+
+        return $img_path;
+    }
+}

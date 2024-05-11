@@ -1,0 +1,15 @@
+<?php require_once ("header.php"); ?>
+        <div id="page1">
+            <div>
+                <fieldset>
+                    <h2>Prodotto</h2>
+
+
+                    <div id="desc"></div>
+
+
+
+                </fieldset>
+            </div>
+        </div>
+<?php require_once ("footer.php"); ?>

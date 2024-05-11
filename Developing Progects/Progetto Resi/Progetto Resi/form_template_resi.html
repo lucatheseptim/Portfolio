@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<div id="input"> 
+    <form id="filterform" action="{PHP_SELF}" method="post">
+        <input type="hidden" id="orderby" name="orderby" value="{OrderByVal}" />
+        <fieldset style="width:1156; height:110px;"> 
+            <!--inserimento label library-->       
+            <label>{Library}:*</label>
+            <!--libreria che l'utente seleziona--> 
+            <span id="libreriaspan" class="indinp"> 
+                <library>{LibraryVal}</library> 
+            </span>
+            <!--inserimento label From Date-->
+            <label>Data da:</label>  
+                <span id="startdatespan">
+                    <!-- inserisco l'inpput della data da -->
+                    <input id="datepicker_data_da" placeholder="clicca per scegliere la data" type="text" class="form-control" data-zdp_readonly_element="false"/>
+                </span>
+                <span id="todatespan">a:</span> 
+                    <!-- inserisco l'inpput della data a -->
+                    <input id="datepicker_data_a" placeholder="clicca per scegliere la data" type="text" class="form-control" data-zdp_readonly_element="false"/>
+                </span>
+            <!--gif di caricamento-->
+            <span class="relem"><img alt="Loading..." align="right" id="ajaxloader_minus" src="/indagini/templates/ajax-loader.gif" /></span><br />
+            <!-- INFO BUTTON -->
+            <span class="info-icon">i</span>
+            <div id="informazioni_progetto" hidden> 
+                <h3>-I campi indicati con * sono obbligatori</h3>  
+            </div> 
+            
+            <!--MINI GIF-->
+            <span class="relem" style="width: 50px;text-align: left;"></span>
+            <!--inserimento label negozio-->
+            <br>
+            <div class="filtershops_botton">
+                <!--capo area-->
+                <label>{HeadArea}:</label>
+                <span id="headareaspan" class="indinp">
+                    <select name='headarea' id='headarea' class='med'>
+                    </select>
+                </span> 
+                <!--località-->
+                <label>{City}:</label> 
+                    <span id="cityspan" class="indinp">
+                        <select name="city" id="city" class="med">        
+                        </select>   
+                    </span> 
+                <!--negozio-->
+                <label>{Shop}:</label> 
+                    <span id="shopspan" class="indinp"></span>  
+                <!--inserimento bottone cerca PV--> 
+                <span class="relem" style="padding-left: 655px;">
+                    <button id="gobutton" type="button" style="cursor: pointer; width:90px;">{GoButton} </button>
+                </span>
+            </div>
+        </fieldset>
+    </form> 
+</div>
+
+<div id="body_output">
+    <div class="align-center">
+        <span class="gif_caricamento"><img alt="Loading..." align="center" id="ajaxloader" src="/indagini/templates/gif_resi_po.gif" />
+        </span>
+    </div>
+  
+    <!--
+    <table id="table_date_resi_raggruppati" style="width:1160px; height:110px;"> 
+        <div id="title_resi"> 
+            <h1>Dati Resi</h1>  
+        </div>     
+        <tr>
+            <th style="color: white;">NEGOZIO</th>
+            <th style="color: rgb(233, 225, 225);">MEDIA GIORNI RESI SCONTRINO</th>
+            <th style="color:white;">NUMERO SCONTRINI RILASCIATI</th>
+        </tr>
+    </table> --><!--chiuso la tabella dei resi --> 
+    <!--
+    <table id="table_date_resi_singoli">   
+        <tr>
+            <th style="color: white;">NEGOZIO</th>
+            <th style="color: white;">NUMERO PROGRESSIVO VENDITA</th>
+            <th style="color: white;">GIORNI TRASCORSI RESI SCONTRINO</th>
+        </tr>
+    </table> --><!--chiuso la tabella dei resi --> 
+</div>
+</html>
+
+
+

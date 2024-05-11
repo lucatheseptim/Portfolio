@@ -1,0 +1,162 @@
+<?php
+$root = realpath($_SERVER["DOCUMENT_ROOT"]);
+require_once ("$root/Models.php");
+require_once ("$root/Controller/OrderController.php");
+
+use PHPUnit\Framework\TestCase;
+
+class OrderControllerTest extends TestCase{
+    /** @static array Array id model creati nei vari test. Vengono cancellati alla fine di tutti test*/
+    public static $test_order_ids;
+    /** @var OrderController */
+    public $order_controller;
+
+    public static function setUpBeforeClass(): void{
+        self::$test_order_ids = array();
+    }
+
+    public function setUp(): void{
+        $this->order_controller = new OrderController();
+    }
+
+    public function testSaveOrderNewSuccessWithAllData(): Order{
+        $json = '{"ordine_id":null,"cliente_id":1,"codneg":101,"comment":""}';
+        $req_val_fields = json_decode($json, true);
+        $order = $this->order_controller->saveOrder($req_val_fields);
+        $this->assertNotNull($order);
+        self::$test_order_ids[] = $order->id;
+        $this->assertEquals($req_val_fields["cliente_id"], $order->cliente_id);
+        $this->assertEquals($req_val_fields["codneg"], $order->salesPoint);
+        $this->assertEquals($req_val_fields["comment"], $order->comment);
+        $this->assertEquals(Order::NEW_STATE, $order->stato);
+
+        return $order;
+    }
+
+    public function testSaveOrderNewSuccessWithOnlyRequiredData(): Order{
+        $json = '{"ordine_id":null,"cliente_id":1,"codneg":101}';
+        $req_val_fields = json_decode($json, true);
+        $order = $this->order_controller->saveOrder($req_val_fields);
+        $this->assertNotNull($order);
+        self::$test_order_ids[] = $order->id;
+        $this->assertEquals($req_val_fields["cliente_id"], $order->cliente_id);
+        $this->assertEquals($req_val_fields["codneg"], $order->salesPoint);
+        $this->assertEquals("", $order->comment);
+        $this->assertEquals(Order::NEW_STATE, $order->stato);
+
+        return $order;
+    }
+    /**
+     * @depends testSaveOrderNewSuccessWithAllData
+     * @param Order $order
+     */
+    public function testSaveOrderAlredyExisting($order): void{
+        $json = '{"ordine_id":'.$order->id.',"cliente_id":2,"codneg":267,"comment":"test commento cambiato"}';
+        $req_val_fields = json_decode($json, true);
+        $order_updated = $this->order_controller->saveOrder($req_val_fields);
+        $this->assertEquals($req_val_fields["cliente_id"], $order_updated->cliente_id);
+        $this->assertEquals($req_val_fields["codneg"], $order_updated->salesPoint);
+        $this->assertEquals($req_val_fields["comment"], $order_updated->comment);
+        $this->assertEquals(Order::NEW_STATE, $order_updated->stato);
+    }
+    /**
+     * @depends testSaveOrderNewSuccessWithAllData
+     * @param Order $order
+     * @return Order
+     */
+    public function testSaveOrderProductsSuccessWithAllData($order): Order{
+        $json = '{"ordine_id":'.$order->id.',"products":[{"id":null,"product_id":"1","qty":2,"grading":40,"comment":"","gender":"m","barcode":"200098","barcode_prezzo":"200010",'.
+            '"assortment":"","specialGrading1":"","bodyReference":"","components":[{"component_id":"6","materiale":"1","contrasto":"2"}],'.
+            '"alterations":[{"alteration_id":"2","value":10}]}]}';
+        $req_val_fields = json_decode($json, true);
+        $products = $this->order_controller->saveOrderProducts($order->id, $req_val_fields);
+        $this->assertIsArray($products);
+        $this->assertNotEmpty($products);
+        $i = 0;
+        foreach ($products as $prod){
+            $expected_prod = $req_val_fields["products"][$i];
+            $actual_prod = ProductOrder::find($prod->id);
+            $this->assertEquals($expected_prod["grading"], $actual_prod->grading);
+            $this->assertEquals($expected_prod["gender"], $actual_prod->gender);
+            $actual_prod_comp = ProductOrderComponent::where("order_product_id", $actual_prod->id);
+            $this->assertNotEmpty($actual_prod_comp);
+            $this->assertEquals(sizeof($expected_prod["components"]), sizeof($actual_prod_comp));
+            $actual_prod_alt = ProductOrderComponent::where("order_product_id", $actual_prod->id);
+            $this->assertNotEmpty($actual_prod_alt);
+            $this->assertEquals(sizeof($expected_prod["alterations"]), sizeof($actual_prod_alt));
+            $i++;
+        }
+
+        return $order;
+    }
+    /**
+     * @depends testSaveOrderProductsSuccessWithAllData
+     * @param Order $order
+     */
+    public function testSaveOrderProductsSuccessWithOnlyRequiredData($order): void{
+        $json = '{"ordine_id":'.$order->id.',"products":[{"id":null,"product_id":"1","qty":1,"grading":39,"barcode":"200098","barcode_prezzo":"200010",'.
+            '"components":[{"component_id":"6","materiale":"1"}],"alterations":[{"alteration_id":"2","value":10}]}]}';
+        $req_val_fields = json_decode($json, true);
+
+        $products = $this->order_controller->saveOrderProducts($order->id, $req_val_fields);
+        $this->assertIsArray($products);
+        $this->assertNotEmpty($products);
+        $i = 0;
+        foreach ($products as $prod){
+            $expected_prod = $req_val_fields["products"][$i];
+            $actual_prod = ProductOrder::find($prod->id);
+            $this->assertEquals($expected_prod["grading"], $actual_prod->grading);
+            $this->assertEquals(ProductOrder::GENDER_M, $actual_prod->gender);
+            $actual_prod_comp = ProductOrderComponent::where("order_product_id", $actual_prod->id);
+            $this->assertNotEmpty($actual_prod_comp);
+            // $this->assertEquals(sizeof($expected_prod["components"]), sizeof($actual_prod_comp));
+            $actual_prod_alt = ProductOrderComponent::where("order_product_id", $actual_prod->id);
+            $this->assertNotEmpty($actual_prod_alt);
+            // $this->assertEquals(sizeof($expected_prod["alterations"]), sizeof($actual_prod_alt));
+            $i++;
+        }
+    }
+    /**
+     * @depends testSaveOrderProductsSuccessWithAllData
+     * @param Order $order
+     * @return Order
+     */
+    public function testConfirmOrder($order): void{
+        $res = $this->order_controller->confirmOrder($order->id);
+        $order = Order::find($order->id);
+        $this->assertTrue($res);
+        $this->assertEquals(Order::PENDING_STATE, $order->stato);
+    }
+    /**
+     * @depends testSaveOrderProductsSuccessWithAllData
+     * @param Order $order
+     * @return Order
+     */
+    public function testApproveOrder($order): void{
+        $res = $this->order_controller->approveOrder($order->id);
+        $order = Order::find($order->id);
+        $this->assertTrue($res);
+        $this->assertEquals(Order::APPROVED_STATE, $order->stato);
+    }
+
+    public static function tearDownAfterClass(): void{
+        foreach (array_unique(self::$test_order_ids) as $id){
+            $prod_orders = ProductOrder::where("order_id", $id);
+            foreach ($prod_orders as $product){
+                ProductOrder::delete($product->id);
+            }
+            Order::delete($id);
+        }
+    }
+
+    public function testGetOrders(): void{
+        $this->markTestIncomplete("to do");
+    }
+    // Providers here
+    // public function newOrderJsonRequestProvider(){
+    //     return array(
+    //         array('{"ordine_id":null,"cliente_id":1,"codneg":101,"comment":""}')
+    //     );
+    // }
+}
+?>

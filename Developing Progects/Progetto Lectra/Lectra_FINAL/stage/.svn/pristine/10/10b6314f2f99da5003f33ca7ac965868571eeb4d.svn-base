@@ -1,0 +1,12 @@
+<?php
+
+if(!isset($_SESSION["2"])){   
+    header(" Location: login.php");
+    exit;
+}    
+
+?>
+
+
+
+

@@ -1,0 +1,131 @@
+$(document).ready(function () { // una volta che l' html è stato letto tutto
+        //tasto indietro Riepilogo-Camicie
+        $("#riepilogo-camicie").click(function(){
+
+            console.log("entra nel click riepilogo camicie ");
+            $(".container-selezione_componenti ").show(); // lo rendo visibile
+            $(".container-information").hide(); // lo rendo invisibile
+            $("#riepilogo-camicie").hide(); // lo rendo invibile
+            $(".container-repilogo-camicia").hide(); // lo rendo invibile
+
+                //remove active dalla progress bar
+                var list = document.querySelectorAll("li");
+                console.log(list);
+                for( var i = 0; i<list.length ; i++){
+                    if(list[i].textContent == 'CRM' || list[i].textContent == 'ORDINE' || list[i].textContent == 'SPEDIZIONE'){
+                        $("#ordine").addClass('active');
+                        $("#crm").removeClass('active');
+                        $("#spedizione").removeClass('active');
+                    }
+                }
+
+      /*     $("#conferma-camicia").click(function(){
+            console.log("hey")
+            $(".container-information").show();
+
+            $(".container-repilogo-camicia").show();
+            $("#indietro-mail").hide();
+            $(".container-creazione_mail").hide();
+            $(".nuovo_cliente").hide();
+            $(".container-selezione_componenti").hide();
+            $("#cliente_esistente").hide();
+            $("#indietro-create-account").hide();
+            console.log($("#info_scelte"));
+
+
+            $('#ordine').addClass('active');
+            $("#crm").addClass('active');
+          }); */
+
+        }); // chiuso Riepilogo-Camicie
+
+
+}); // chiudo document.ready
+
+function refreshBtnAggiornaCamicia(){
+    // Modifica
+  $(".modificaBtn").unbind();
+  $(".modificaBtn").on('click' , function () {
+      console.log("torna all'inizio");
+      $(".container-repilogo-camicia").hide();
+      $(".container-all").show();
+      $(".container-selezione_vestibilita").show();
+      //dati salvati
+
+     /*  $("#collo option:first").attr('selected','selected');
+      $("#taglie option:first").attr('selected','selected');
+      $("#materiali option:first").attr('selected','selected'); */
+
+     /*  $("#collo").val($("#collo option:first").val());
+      $("#taglie").val($("#taglie option:first").val());
+      $("#materiali").val($("#materiali option:first").val()); */
+
+      /* $("#collo").prop('selectedIndex',2);
+      $("#taglie").prop('selectedIndex',2);
+      $("#materiali").prop('selectedIndex',2); */
+      //qui cancello la riga della camicia precedente
+      let id_camicia = $(this).data("id-camicia");
+      ordine_lectra.rimuoviArticolo(id_camicia);
+      $('.row_camicia-selezionata').remove();
+      console.log(ordine_lectra.articoli);
+   });
+   // Duplica
+    $(".duplicaBtn").unbind();
+    $(".duplicaBtn").on('click', function (){
+        console.log("duplica contenuto");
+        let id_camicia = $(this).data("id-camicia");
+        ordine_lectra.duplicaArticolo(id_camicia, last_camicia_id);
+        console.log(ordine_lectra.articoli);
+        // var ele = $(this).closest('.container_shirt').clone(true);
+        // console.log("cloned element");
+        // console.log(ele);
+        // ele.find("i.modificaBtn").data("id-camicia", last_camicia_id);
+        // ele.find("i.deleteBtn").data("id-camicia", last_camicia_id);
+        // ele.find("i.duplicaBtn").data("id-camicia", last_camicia_id);
+        // $(this).closest('.container_shirt').after(ele).appendTo(".quantity_shirt");
+        creaRiepilogo(ordine_lectra.articoli);
+        last_camicia_id++;
+        refreshBtnAggiornaCamicia();
+        eventSalvaMateriale();
+    });
+    // Delete
+    $(".deleteBtn").unbind();
+    $(".table_dark").on('click', '.deleteBtn', function() {
+        console.log("riga eliminata");
+        let id_camicia = $(this).data("id-camicia");
+        var row = $(this);
+        //$(this).closest('.container_shirt').remove();
+        // $.ajax({
+        //     url: "./../../init.php",
+        //     method: "POST",
+        //     dataType: "json",
+        //     data:{
+        //         action: "delete_order",
+        //         val_fields: {
+        //             ordine_id : "",
+        //             permanent: false
+        //         }
+        //     }
+        // }).done((res) => {
+        swal({
+          title: "SEI SICURO?",
+          text: "Sei sicuro di voler rimuovere questo elemento dal carrello?",
+          icon: "warning",
+          buttons: true,
+          dangerMode: true,
+        })
+        .then((willDelete) => {
+            if (willDelete) {
+                ordine_lectra.rimuoviArticolo(id_camicia);
+                console.log(ordine_lectra.articoli);
+                row.closest('.row_camicia-selezionata').remove(); // cancello la riga contenentente le caratteristiche della camicia
+                swal("Il tuo elemento è stato rimosso", {
+                    icon: "success",
+                });
+            } else {
+                swal("Nessun elemento rimosso!");
+            }
+        });
+        // });
+    });
+}

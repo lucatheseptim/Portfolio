@@ -1,0 +1,143 @@
+// Order states
+const CANCELLED_STATE = -1;     // Ordine cancellato.
+const NEW_STATE = 0;            // Ordine creato. E' ancora possibile aggiungere prodotti e/o modificare l'ordine
+const PENDING_STATE = 1;        // Ordine inserito con tutti i prodotti e con i dati per la spedizione
+const APPROVED_STATE = 2;       // Ordine approvato dal cliente. Quando il cliente firma il foglio
+const LECTRA_SENT_STATE = 3;    // Ordine inviato con successo sul sistema di Lectra
+const DHL_READY_TO_SHIP_STATE = 4;    // Ordine con tutti i prodotti pronti per essere spediti
+const DHL_SENT_STATE = 5;             // Ordine inviato sul sistema di DHL
+const PROFORMA_DONE = 6;             // Proforma effettuato
+
+$(document).ready(function(){
+    console.log("ordini_taglio");
+
+    parseRequestGetAllOrders();
+});
+
+// Requests
+
+function parseRequestGetAllOrders(){
+    $.ajax({
+        url: "./../../init.php",
+        method: "POST",
+        dataType: "json",
+        data: {
+            action: "get_orders",
+            val_fields: {
+                stato: LECTRA_SENT_STATE
+            }
+        }
+    }).done(function(res){
+        console.log(res);
+        if(res.output.success == 1){
+            parseResponseGetAllOrders(res.output.data);
+        }else{
+            swal("Errore recupero ordini","Errore" + res.output.error, "warning");
+        }
+    }).fail(function(){
+        swal("Errore recupero ordini","Errore", "warning");
+    });
+}
+
+
+// Responses
+
+function parseResponseGetAllOrders(orders){
+    let table_ordini = "";
+
+    let i = 0;
+    for (var order_id of Object.keys(orders)){
+        order = orders[order_id];
+        table_ordini += "<tr>"+
+            "<td>"+i+"</td>"+
+            "<td>"+order.id+"</td>"+
+            "<td>"+order.stato+"</td>"+
+            "<td><div class='toggle-order-prod' data-id='"+order.id+"'><i class='fas fa-plus'></i></div></td>"+
+        "</tr>"+
+        "<tr id='order_row_"+order.id+"' style='display:none'>"+
+            "<td></td>"+
+            "<td colspan=3><table class='table'>"+
+                "<thead class='thead-dark'><tr>"+
+                    "<th>#</th><th>Barcode</th><th>Pronto</th><th>Bolla Lavorazione</th><th>Pronto la cucitura</th>"+
+                "</tr></thead>";
+
+        for (var product_id of Object.keys(order.products)){
+            product = order.products[product_id];
+            cls_btn = (product.da_cucire == 1) ? "hidden" : "";
+            table_ordini += "<tr>"+
+                    "<td>"+product.sequenceNumber+"</td>"+
+                    "<td>"+product.barcode_univoco+"</td>"+
+                    "<td class='flag-da-cucire'>"+((product.da_cucire == 1) ? "Sì" : "No")+"</td>"+
+                    "<td><div><i class='fas fa-2x fa-file-download clickable print-bolla' data-barcode='"+product.barcode_univoco+"'></i></div></td>"+
+                    "<td><div><i class='fas fa-2x fa-check clickable prod-da-cucire "+cls_btn+"' data-barcode='"+product.barcode_univoco+"'></i></div></td>"+
+                "</tr>";
+        }
+        table_ordini += "</table></td></tr>";
+        i++;
+    }
+    $("#ordini_taglio_table").append(table_ordini);
+    addClickEvents();
+}
+
+function addClickEvents(){
+    $(".toggle-order-prod").click(function(){
+        let row_id = $(this).data("id");
+
+        if($("tr#order_row_"+row_id).is(":visible")){
+            $("tr#order_row_"+row_id).hide();
+            $(this).html("<i class='fas fa-plus'></i>");
+        }else{
+            $("tr#order_row_"+row_id).show();
+            $(this).html("<i class='fas fa-minus'></i>");
+        }
+
+    });
+    // Stampa bolla
+    $(".print-bolla").click(function(){
+        let barcode = $(this).data("barcode");
+        $.ajax({
+            url: "./../../init.php",
+            method: "POST",
+            dataType: "json",
+            data: {
+                action: "create_bolla_lavorazione",
+                val_barcode: barcode
+            }
+        }).done(function(res){
+            console.log(res);
+            if(res.output.success == 1){
+                req_url = "./../../init.php?action=download_bolla_lav&val_filename="+res.output.data.filepathname;
+                window.open(req_url, "_blank");
+            }else{
+                swal("Errore recupero ordini","Errore" + res.output.error, "warning");
+            }
+        }).fail(function(e){
+            swal("Errore creazione bolla di lavorazione","Errore", "warning");
+        });
+    });
+    // Imposta ordine da cucire
+    $(".prod-da-cucire").click(function(){
+        let btn_elem = $(this);
+        let barcode = btn_elem.data("barcode");
+        $.ajax({
+            url: "./../../init.php",
+            method: "POST",
+            dataType: "json",
+            data: {
+                action: "save_prodotto_da_cucire",
+                val_barcode: barcode
+            }
+        }).done(function(res){
+            console.log(res);
+            if(res.output.success == 1){
+                swal("Success", "Prodotto impostato come completato", "success");
+                btn_elem.hide();
+                btn_elem.parents("tr").find("td.flag-da-cucire").html("Sì");
+            }else{
+                swal("Errore recupero ordini","Errore" + res.output.error, "warning");
+            }
+        }).fail(function(){
+            swal("Errore aggiornamento stato prodotto","Errore", "warning");
+        });
+    });
+}

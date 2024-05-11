@@ -1,0 +1,7 @@
+<?php 
+
+require_once "auth.php"); // qui richiamo il file auth.php per controllare se l'utente è loggato 
+
+?>
+</body>
+</html>

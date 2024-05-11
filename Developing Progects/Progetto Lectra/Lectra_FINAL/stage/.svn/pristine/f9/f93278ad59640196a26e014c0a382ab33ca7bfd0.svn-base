@@ -1,0 +1,20 @@
+<?php
+require_once ("/var/www/html/lectra/stage/Services/BollaLavorazioneService.php");
+// include_once ("/var/www/html/lectra/stage/config.inc.php");
+
+use PHPUnit\Framework\TestCase;
+
+class BollaLavorazioneServiceTest extends TestCase{
+
+    // public static function setUpBeforeClass(): void{
+    // }
+
+    public function testGetBodyBolla(): void{
+        // $prod_order_test_id = 2856;
+        $prod_order_test_id = 2950; // Con ricamo
+        $bolla_service = new BollaLavorazioneService($prod_order_test_id);
+        $html = $bolla_service->getHtmlBollaLavorazione();
+        error_log($html);
+        $this->assertTrue(true);
+    }
+}

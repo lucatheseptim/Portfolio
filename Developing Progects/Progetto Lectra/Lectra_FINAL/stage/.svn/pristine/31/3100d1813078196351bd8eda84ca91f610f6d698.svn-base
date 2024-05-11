@@ -1,0 +1,15 @@
+<?php
+
+session_start();
+
+if(isset($_SESSION))
+{
+  if(!isset($_SESSION['1'])){
+    header(" Location: login.php");
+    exit; 
+  }   
+}
+
+
+
+

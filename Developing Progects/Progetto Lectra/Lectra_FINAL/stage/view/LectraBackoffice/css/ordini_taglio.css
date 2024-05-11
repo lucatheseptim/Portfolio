@@ -1,0 +1,25 @@
+.toggle-order-prod {
+    padding: 5px;
+    color blue;
+    cursor: pointer;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+#ordini_taglio_table {
+    text-align: center;
+}
+
+.print-bolla {
+    color: #17a2b8;
+}
+
+.prod-da-cucire {
+    color: #28a745;
+}

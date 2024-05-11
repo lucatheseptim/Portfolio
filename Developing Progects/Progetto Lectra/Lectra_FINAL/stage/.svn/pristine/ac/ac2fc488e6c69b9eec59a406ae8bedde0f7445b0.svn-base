@@ -1,0 +1,165 @@
+<?php
+
+if(!isset($_SESSION)){ // se non esiste la sessione la creo
+    session_start();
+}
+
+
+
+$uri = (isset ($_REQUEST['redirect']) ? $_REQUEST['redirect'] : 'index.php');
+$codneg = (isset ($_REQUEST['codneg']) ? $_REQUEST['codneg'] : 'none');
+
+var_dump($_SESSION);
+
+?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{language}">
+    <head profile="http://gmpg.org/xfn/11">
+        <title>Login Lectra</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link rel="stylesheet" href="css/login.css">
+        <script type=”text/javascript”>
+            if (top.location != self.location ) { top.location = self.location; }
+        </script>
+        <script
+          src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+          crossorigin="anonymous"></script>
+        <script type="text/javascript">
+           $(document).ready(() => {
+            console.log("login.js ready");
+            $("#logout").click(() => { 
+                
+                $.ajax({
+                    url: "./../../init.php",  
+                    method: "POST",
+                    dataType: "json",
+                    data: {
+                        action: "logout",
+                       
+                    }
+                }).done((res) => {
+                    console.log(res);
+                    if(res.output.success === 1){
+
+                        
+                        
+                        
+                    }else{
+                        $("#error_box").html(res.output.error);
+                    }
+                });
+                
+            });
+        });
+        $(document).ready(() => {
+            console.log("login.js ready");
+            $("#loginbutton").click(() => { 
+                
+                $.ajax({
+                    url: "./../../init.php",  
+                    method: "POST",
+                    dataType: "json",
+                    data: {
+                        action: "login",
+                        val_codcom: $("input[name=codcom]").val(),
+                        val_password: $("input[name=password]").val(),
+                        val_codneg: $("input[name=codneg]").val()
+                    }
+                }).done((res) => {
+                    console.log(res);
+                    if(res.output.success === 1){
+
+                        console.log(res);
+                        console.log("redirect to" + $("input[name=redirect]").val());
+                        
+                        
+
+                        window.location.href = "./index.php";
+                        
+                        
+                        
+                    }else{
+                        $("#error_box").html(res.output.error);
+                    }
+                });
+                
+            });
+        });
+        </script>
+        <!-- <link rel="stylesheet" href="css/style.css" type="text/css" /> -->
+    </head>
+    <body>
+
+<!--        <div id="login">-->
+<!--            <div id="container">-->
+<!--                <fieldset>-->
+<!--                    <h2>Login Intranet</h2>-->
+<!--                    <input name="redirect" type="hidden" value="--><?php //echo $uri ?><!--" />-->
+<!--                    <input name="codneg" type="hidden" value="--><?php //echo $codneg ?><!--" />-->
+<!--                    <label>Negozio: --><?php //echo $codneg ?><!--</label><br/>-->
+<!--                    <label>User:</label><input name="codcom" /><br/>-->
+<!--                    <label>Password:</label><input name="password" type="password"/><br/>-->
+<!--                    <label id="error_box" style="color:red;width:200px;"></label><br/>-->
+<!--                    <div id="loginbutton"> Conferma <div/>-->
+<!--                </fieldset>-->
+<!--            </div>-->
+<!--        </div>-->
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-2"></div>
+            <div class="col-lg-6 col-md-8 login-box">
+                <div class="col-lg-12 login-key">
+                    <i class="fas fa-cut" aria-hidden="true"></i>
+                </div>
+                <div class="col-lg-12 login-title">
+                    LECTRA LOGIN
+                </div>
+
+                <div class="col-lg-12 login-form">
+                    <div class="col-lg-12 login-form">
+                        <form>
+
+                            <div class="alert alert-warning" role="alert">
+                            Da Cancellare poi: 
+                            utente :       7069
+                            password:      tb6013.., 
+                            
+                            </div>
+                            <input name="redirect" type="hidden" value="<?php echo $uri ?> "/>
+                            <input name="codneg" type="hidden" value="<?php echo $codneg ?>" />
+                            <div class="form-group">
+                                <label class="form-control-label">UTENTE</label>
+                                <input name="codcom" type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-control-label">PASSWORD</label>
+                                <input name="password" type="password" class="form-control">
+                            </div>
+
+                            <div class="col-lg-12 loginbttm">
+                                <div id="error_box" class="col-lg-6 login-btm login-text">
+                                    <!-- Error Message -->
+                                </div>
+                                <div class="col-lg-6 login-btm login-button">
+                                    <div id="loginbutton" class="btn btn-outline-primary">CONFERMA</div>
+                                </div>
+                                <div class="col-lg-6 login-btm login-button">
+                                    <div id="logout" class="btn btn-outline-primary">LOGOUT FORZATO SVUOTA SESSIONE</div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-2"></div>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>

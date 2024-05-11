@@ -1,0 +1,244 @@
+/*
+.table_date_resi_raggruppati tr:nth-child(odd) { 
+    background-color:#c3c2c2; 
+}
+*/
+
+/*TABELLE GENERALI*/
+.table_date_resi_raggruppati tr:nth-child(even) { 
+    background-color:#c3c2c2; 
+}
+ 
+
+
+.table_date_resi_raggruppati_filter tr:nth-child(even) { 
+    background-color:#c3c2c2; 
+}
+
+/*TABELLE INTERMEDIE*/
+
+/*
+.table_date_resi_singoli_spec tr:nth-child(odd){
+    background-color:#c3c2c2;
+}*/
+
+.table_date_resi_singoli tr:nth-child(4n) { 
+    background-color:#c3c2c2; 
+}
+
+.table_date_resi_singoli_spec tr:nth-child(4n){
+    background-color:#c3c2c2;
+}
+
+/*TABELLE SPECIFICHE FINALI*/
+.result_prodotti_specifica tr:nth-child(even){
+    background-color:#c3c2c2;
+} 
+
+
+.title_resi{ 
+    text-align: center;
+    font-size: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+
+
+i{
+    cursor: pointer; 
+    color: #094477;
+    font-size: 18px;
+}
+
+
+
+.result_prodotti_specifica{
+
+    border:2px solid black; 
+    margin: auto; 
+    font-weight: bold; /*scritta  in grassetto */ 
+    text-align: center;
+    font-size: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: white;
+
+}
+
+
+
+.table_date_resi_raggruppati{
+    border:2px solid black; 
+    margin: auto; 
+    font-weight: bold; /*scritta  in grassetto */ 
+}
+
+.table_date_resi_raggruppati_filter{
+    border:2px solid black; 
+    margin: auto; 
+    font-weight: bold; /*scritta  in grassetto */ 
+}
+
+.gif_caricamento_filtri{
+   
+    width: 10px !important;
+    height: 10px !important;
+}
+
+
+.table_date_resi_singoli{
+
+    border:2px solid black; 
+    font-weight: bold;
+    background-color: blanchedalmond;
+}
+
+th{
+    background-color:#6f96b8;
+    
+}
+
+tr, td{
+    padding:8px;
+    text-align: center;
+}
+
+
+
+ 
+.filtershops_botton{
+    margin-top: 25px;
+}
+
+.align-center {
+   padding-left: 385px;
+}
+
+.tot_scontrini{
+    background-color: #F7E7CE;
+}
+
+.tot_scontrini_raggruppati_all{
+
+    font-size: 15px;
+    font-weight: bold;
+
+}
+
+.total_giorni{
+
+    font-size: 15px;
+    font-weight: bold
+}
+ 
+.relem{
+    
+    width:120px;
+} 
+
+#ajaxloader{
+
+    width: 40px;
+    height:40px;
+    padding-left: 535px;
+}
+
+.info-icon{
+
+    margin-top: -25px;
+}
+
+#gobutton{
+
+    margin: top -35px;
+    margin-left:355px;
+    width: 35px;
+
+}
+ 
+.filtershops_botton {
+    margin-top: 0px;
+}
+
+
+.SumoSelect>.optWrapper>.options li label { 
+    width: 200px;
+}  
+
+.negozio_select_multiple{ 
+    width: 170px;
+}
+
+
+/*SEZIONE DIALOG*/ 
+.ui-widget-header,.ui-state-default, ui-button { 
+    background:#b9cd6d;
+    border: 1px solid #b9cd6d;
+    color: #FFFFFF;
+    font-weight: bold; 
+}
+
+.ui-dialog-buttonpane {  
+    text-align: center;
+}
+
+.ui-dialog-titlebar{
+    text-align: right;
+}
+
+
+.ui-dialog-title{
+
+   text-align: center;
+}
+
+
+.ui-dialog-buttonset{
+
+    display: none;   /*rendo invisibile il bottone */ 
+
+}
+
+.ui-dialog-titlebar-close{
+    padding-top: 1px;
+    height: 20px;
+    
+}
+
+.ui-draggable-handle{
+    height: 33px;
+
+}  
+
+.ui-resizable{
+    width:1067px !important;  
+}
+
+.ui-widget-content{
+    width:1330px !important;
+}
+
+
+/*
+.ui-dialog {
+    top: 500px !important;
+    left: 350px !important;
+ }
+
+ */
+
+
+
+.prova{
+
+    width: 1000px !important;
+}
+
+
+
+
+
+
+
+
+
+

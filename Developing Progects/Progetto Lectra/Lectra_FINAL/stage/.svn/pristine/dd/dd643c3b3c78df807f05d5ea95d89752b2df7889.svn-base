@@ -1,0 +1,8 @@
+<?php
+
+if(!$sessione){ // se non esiste la sessione o è diversa da 1 
+    header("Location: login.php");  
+}
+
+
+

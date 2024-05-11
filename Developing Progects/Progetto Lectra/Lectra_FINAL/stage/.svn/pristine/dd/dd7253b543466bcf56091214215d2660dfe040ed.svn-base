@@ -1,0 +1,62 @@
+
+.container-riepilogo{
+    margin: 50px auto;
+    position: relative;
+    top: -50px;
+}
+
+#riepilogo-conferma-ordine{
+    padding: 15px;
+    background-color: #023047;
+    color: white;
+    width: 130px;
+    font-weight: bolder;
+    margin: -15px auto;
+    cursor: pointer;
+}
+
+#aggiungi-nuova-camicia,
+#nuova-cliente-camicia{
+/*     padding: 18px;
+    background-color: #023047;
+    color: white;
+    width: 312px;
+    font-weight: bolder;
+    margin: 0px auto;
+    cursor: pointer; */
+    padding: 5px;
+    background-color: #023047;
+    color: white;
+    width: 230px;
+    font-weight: bolder;
+    margin: 0px 4px;
+    cursor: pointer;
+} 
+/*dimensione dell'icone trash*/
+i#modifica{
+    font-size: 30px;
+    width:30px;
+    cursor: pointer;
+   
+}
+i#elimina{
+    font-size: 30px;
+    width:30px;
+    cursor: pointer;
+    
+}
+i#duplica{
+    font-size:30px;
+    width:30px;
+    cursor: pointer;
+}
+.flex {
+    display: flex;
+    justify-content: center;
+}
+
+select#materiali_duplicati {
+    width: 198px;
+    height: initial;
+}
+

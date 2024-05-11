@@ -1,0 +1,86 @@
+// Order states
+const CANCELLED_STATE = -1;     // Ordine cancellato.
+const NEW_STATE = 0;            // Ordine creato. E' ancora possibile aggiungere prodotti e/o modificare l'ordine
+const PENDING_STATE = 1;        // Ordine inserito con tutti i prodotti e con i dati per la spedizione
+const APPROVED_STATE = 2;       // Ordine approvato dal cliente. Quando il cliente firma il foglio
+const LECTRA_SENT_STATE = 3;    // Ordine inviato con successo sul sistema di Lectra
+const DHL_READY_TO_SHIP_STATE = 4;    // Ordine con tutti i prodotti pronti per essere spediti
+const DHL_SENT_STATE = 5;             // Ordine inviato sul sistema di DHL
+const PROFORMA_DONE = 6;             // Proforma effettuato
+
+$(document).ready(function(){
+    console.log("ordini_taglio");
+
+    parseRequestGetAllOrders();
+});
+
+// Requests
+
+function parseRequestGetAllOrders(){
+    $.ajax({
+        url: "./../../init.php",
+        method: "POST",
+        dataType: "json",
+        data: {
+            action: "get_orders",
+            val_fields: {
+                stato: LECTRA_SENT_STATE
+            }
+        }
+    }).done(function(res){
+        console.log(res);
+        if(res.output.success == 1){
+            parseResponseGetAllOrders(res.output.data);
+        }else{
+            swal("Errore recupero ordini","Errore" + res.output.error, "warning");
+        }
+    }).fail(function(){
+        swal("Errore recupero ordini","Errore", "warning");
+    });
+}
+
+
+// Responses
+
+function parseResponseGetAllOrders(orders){
+    let table_ordini = "";
+
+    let i = 0;
+    for (var order_id of Object.keys(orders)){
+        order = orders[order_id];
+        table_ordini += "<tr>"+
+            "<td>"+i+"</td>"+
+            "<td>"+order.id+"</td>"+
+            "<td>"+order.stato+"</td>"+
+            "<td><div class='toggle-order-prod' data-id='"+order.id+"'>+</div></td>"+
+        "</tr>";
+
+        for (var product_id of Object.keys(order.products)){
+            product = order.products[product_id];
+            table_ordini += "<tr id='order_row_"+order.id+"' style='display:none'>"+
+                "<td></td>"+
+                "<td colspan=3></td>"+
+            "</tr>";
+        }
+
+        i++;
+    }
+
+    $("#ordini_taglio_table").append(table_ordini);
+    addClickEvents();
+}
+
+function addClickEvents(){
+    $(".toggle-order-prod").click(function(){
+        let row_id = $(this).data("id");
+
+        if($("tr#order_row_"+row_id).is(":visible")){
+            $("tr#order_row_"+row_id).hide();
+            $(this).html("+");
+        }else{
+            $("tr#order_row_"+row_id).show();
+            $(this).html("-");
+        }
+
+    });
+}

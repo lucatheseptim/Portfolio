@@ -1,0 +1,100 @@
+<?php
+
+require_once ('auth.php'); //ricontrollo se l'utente è loggato in questo pagina
+
+?>
+    <div class="container-inserimento_spedizione container-selezione_all">
+
+        <!--bottone indietro-->
+        <div class="indietro" id="indietro-spedizione">
+            INDIETRO
+        </div>
+        <div class="container-information">
+            <div>
+                    <!--input -->
+                    <div class="spedizione_cliente">
+
+                        <label for="indirizzo-spedizione">Indirizzo Spedizione:<span>*</span></label>
+                        <select name="indirizzi-spedizione" id="indirizzo-spedizione-finale">
+                            <option value="crm">INDIRIZZO CRM</option>
+                            <option value="negozio">INDIRIZZO NEGOZIO CORRENTE</option>
+                            <option value="new">INDIRIZZO NUOVO CORRENTE</option>
+                            <option value="new">INDIRIZZO NEGOZIO NON CORRENTE</option>
+                        </select>
+
+                        <!-- <label for="Email">Indirizzo di spedizione:<span>*</span></label><br>
+                            <input class="indirizzo_cliente"  type="text" id="indirizzo" name="indirizzo">
+                             -->
+                        <label for="cap">Cap:<span>*</span></label><br>
+                            <input  class="indirizzo_cliente" type="text" id="cap" name="cap">
+
+                        <label for="provincia">Provincia:<span>*</span></label><br>
+                            <input class="indirizzo_cliente"  type="text" id="provincia" name="provincia">
+
+                        <label for="nazione">Nazione:<span>*</span></label><br>
+                            <input class="indirizzo_cliente"  type="text" id="nazione" name="nazione">
+
+                        <label for="Telefono">Telefono:<span>*</span></label><br>
+                        <input class="indirizzo_cliente" type="text" name="telefono" id="telefono" value=""></input><br>
+                    </div>
+                <!--check box-->
+                <div class='checkbox-corpo form-check form-switch'>
+                    <span class="text-privacy"> Accetto l'informativa sulla privacy</span>
+                    <input id='corpo_check_privacy' class='form-check-input' type='checkbox'>
+                </div>
+                <br>
+            </div>
+
+            <!--tabella totale TO DO-->
+            <div>
+                <div class="table-position">
+                    <table class="table_dark">
+                        <thead>
+                            <tr>
+                                <th>RIEPILOGO </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- DEVE ESSERE GLOBALE la variabile , parte da zero -> var totole_speso_camicie = 0;-->
+                            <td class="td_header"><b>CARATTERISTICHE CAMICIE</b></td>
+                            <!--qui fare il foresch , cioè per ogni camicia stampare le sue caratteristiche
+                                --e le su e quantità-->
+                            <!--for-->
+                            <tr>
+                                <td>To do..Camicia N....</td>
+                                 <!--salvare ad ogni giro con una variabile del for il totale dello speso per ogni camicia
+
+                                 totole_speso_camicie = < estrapolare e prendere lo speso della camicia> -->
+                            </tr>
+                            <!--fine for-->
+                        </tbody>
+                        <tfoot>
+                            <td class="td_totale"><b>TOTALE:</b></td>
+
+                            <!-- <tr>
+                            visualizzare il totale speso delle camicie
+                                --cioè stampare totole_speso_camicie -->
+                              <!--   <td>TO DO...Totale Camicie $....</td>
+                            </tr> -->
+                        </tfoot>
+                    </table>
+                </div>
+                <!--bottone conferma ordine-->
+                <div id="conferma-spedizione-ordine">
+                Invia ordine
+                </div>
+            </div>
+        </div>
+        <!--bottone conferma ordine-->
+
+               <!--  <div id="conferma-spedizione-ordine">
+                Invia ordine
+                </div> -->
+
+       <!--  <div class="conferma" style="margin-bottom: 0px;margin-top: 0px;" id="conferma-spedizione-ordine">
+            INVIA ORDINE
+        </div> -->
+    </div>
+
+
+</html>

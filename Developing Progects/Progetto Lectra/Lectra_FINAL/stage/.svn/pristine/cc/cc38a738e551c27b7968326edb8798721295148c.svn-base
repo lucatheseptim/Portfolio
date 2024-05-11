@@ -1,0 +1,32 @@
+$(document).ready(() => {
+    console.log("login.js ready");
+    $("#loginbutton").click(() => { 
+        
+        window.location.href = "./index.php";
+        
+        $.ajax({
+            url: "./../../init.php", 
+            method: "POST",
+            dataType: "json",
+            data: {
+                action: "login",
+                val_codcom: $("input[name=codcom]").val(),
+                val_password: $("input[name=password]").val(),
+                val_codneg: $("input[name=codneg]").val()
+            }
+        }).done((res) => {
+            console.log(res);
+            if(res.output.success === 1){
+
+                console.log(res);
+                console.log("redirect to" + $("input[name=redirect]").val());
+
+                // window.location.href = $("input[name=redirect]").val();
+                window.location.href = "./index.php";
+            }else{
+                $("#error_box").html(res.output.error);
+            }
+        });
+        
+    });
+});

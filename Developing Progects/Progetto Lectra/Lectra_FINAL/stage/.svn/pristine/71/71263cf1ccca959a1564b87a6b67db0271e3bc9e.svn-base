@@ -1,0 +1,18 @@
+$(document).ready(function(){
+    console.log("ordini_taglio");
+
+    parseRequestGetAllOrders();
+});
+
+function parseRequestGetAllOrders(){
+    $.ajax({
+        url: "./../../init.php",
+        method: "POST",
+        dataType: "json",
+        data: {
+            action: "get_orders"
+        }
+    }).done(function(res){
+        console.log(res);
+    });
+}

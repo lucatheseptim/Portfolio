@@ -1,0 +1,15 @@
+<?php
+
+/*
+if(!isset($_SESSION["1"])){   
+header(" Location: login.php");
+exit; 
+
+
+}    
+*/
+?>
+
+
+
+

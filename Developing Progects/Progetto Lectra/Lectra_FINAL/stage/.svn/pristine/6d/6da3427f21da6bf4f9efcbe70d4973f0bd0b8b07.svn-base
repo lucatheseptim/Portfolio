@@ -1,0 +1,5 @@
+.toggle-order-prod {
+    padding: 5px;
+    color blue;
+    cursor: pointer;
+}

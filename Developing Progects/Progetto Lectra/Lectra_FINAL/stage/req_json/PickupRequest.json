@@ -1,0 +1,63 @@
+{
+    "PickUpRequest": {
+        "PickUpShipment": {
+            "ShipmentInfo": {
+                "ServiceType": "N",
+                "Billing": {
+                    "ShipperAccountNumber": "106780707",
+                    "ShippingPaymentType": "R",
+                    "BillingAccountNumber": "106780707"
+                },
+                "UnitOfMeasurement": "SI"
+            },
+            "PickupTimestamp": "2021-04-21T12:30:00GMT+00:00",
+            "PickupLocationCloseTime": "17:00",
+            "SpecialPickupInstruction": "Collect at reception",
+            "PickupLocation": "Reception",
+            "InternationalDetail": {
+                "Commodities": {
+                    "NumberOfPieces": "1",
+                    "Description": "Computer Parts"
+                }
+            },
+            "Ship": {
+                "Shipper": {
+                    "Contact": {
+                        "PersonName": "Mario Mina",
+                        "CompanyName": "Fenicia Spa",
+                        "PhoneNumber": "3489214245",
+                        "EmailAddress": "ced@feniciaspa.it",
+                        "MobilePhoneNumber": "3489214245"
+                    },
+                    "Address": {
+                        "StreetLines": "Via Mecenate 84 interno 23",
+                        "City": "Milano",
+                        "PostalCode": "20138",
+                        "CountryCode": "IT"
+                    }
+                },
+                "Pickup": {
+                    "Contact": {
+                        "PersonName": "Mario Mina",
+                        "CompanyName": "Fenicia Spa",
+                        "PhoneNumber": "3489214245",
+                        "EmailAddress": "ced@feniciaspa.it",
+                        "MobilePhoneNumber": "3489214245"
+                    },
+                    "Address": {
+                        "StreetLines": "Via Mecenate 84 interno 23",
+                        "City": "Milano",
+                        "PostalCode": "20138",
+                        "CountryCode": "IT"
+                    }
+                },
+                "Recipient": {
+
+                }
+            },
+            "Packages": {
+
+            }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+<?php
+require_once ("include/base.php");
+
+$page = new Template ("templates/ordini_taglio.html");
+$content = new Template ("templates/base.html");
+
+
+
+$page->content = $content->out();
+echo $page->out();
+?>

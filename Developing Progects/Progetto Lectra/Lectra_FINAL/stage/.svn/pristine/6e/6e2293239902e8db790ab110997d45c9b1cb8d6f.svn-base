@@ -1,0 +1,132 @@
+<?php
+require_once ("/var/www/html/lectra/stage/utils/Model.php");
+
+/** Ordine **/
+class Order extends Model{
+    protected $table = "orders";
+    protected $key = "id";
+    protected $fields = ["cliente_id", "session", "codcom", "comment", "factory", "salesPoint", "priority", "deliveryDate",
+        "orderDate", "measuresUnit", "sequenceNumber", "stato", "dhl_confirmation_number", "dhl_shipment_identification_number"];
+    const CANCELLED_STATE = -1;     // Ordine cancellato.
+    const NEW_STATE = 0;            // Ordine creato. E' ancora possibile aggiungere prodotti e/o modificare l'ordine
+    const PENDING_STATE = 1;        // Ordine inserito con tutti i prodotti e con i dati per la spedizione
+    const APPROVED_STATE = 2;       // Ordine approvato dal cliente. Quando il cliente firma il foglio
+    const LECTRA_SENT_STATE = 3;    // Ordine inviato con successo sul sistema di Lectra
+    const DHL_READY_TO_SHIP_STATE = 4;    // Ordine con tutti i prodotti pronti per essere spediti
+    const DHL_SENT_STATE = 5;             // Ordine inviato sul sistema di DHL
+    const PROFORMA_DONE = 6;             // Proforma effettuato
+    const ORDER_FCT = "Mecenate";
+}
+/** Gesitsce la spedizione legata all'ordine **/
+// class OrderShipping extends Model{
+//     protected $table = "orders_shipping";
+//     protected $key = "id";
+//     protected $fields = ["order_id", "via", "cap", "localita", "provincia", "nazione"];
+//     const GENDER_M = "m";
+//     const GENDER_F = "f";
+// }
+/** Prodotto all'interno dell'ordine **/
+class ProductOrder extends Model{
+    protected $table = "order_products";
+    protected $key = "id";
+    protected $fields = ["product_id", "order_id", "gender", "comment", "quantity", "assortment", "grading", "specialGrading1", "bodyReference",
+        "barcode_prezzo", "barcode_univoco", "prezzo", "inviato", "da_cucire", "completato", "sequenceNumber"];
+    const GENDER_M = "m";
+    const GENDER_F = "f";
+}
+/** Ricamo applciato sul prodotto **/
+class ProductOrderDettaglio extends Model{
+    protected $table = "order_product_dettagli";
+    protected $key = "id";
+    protected $fields = ["order_product_id", "tipo", "barcode", "posizione", "colore", "simbolo", "stile_testo", "testo", "prezzo"];
+    const TIPO_RIC_TESTO = "RT";
+    const TIPO_RIC_SIMBOLO = "RS";
+    const TIPO_BOTTONI_MADRE_PERLA = "BM";
+}
+/** Componenti che compongono il prodotto **/
+class ProductOrderComponent extends Model{
+    protected $table = "order_product_components";
+    protected $key = "id";
+    protected $fields = ["order_product_id", "component_id", "material_id", "comment", "contrastReference"];
+}
+/** Componenti che compongono il prodotto **/
+class ProductOrderAlteration extends Model{
+    protected $table = "order_product_alterations";
+    protected $key = "id";
+    protected $fields = ["order_product_id", "alteration_id", "value"];
+}
+/** Pacco finale spedito da DHL **/
+class DhlPackageOrder extends Model{
+    protected $table = "order_dhl_packages";
+    protected $key = "id";
+    protected $fields = ["order_id", "reference", "n_products", "tracking_number", "sequence_number"];
+}
+/** Prodotti **/
+class Product extends Model{
+    protected $table = "product";
+    protected $key = "id";
+    protected $fields = ["reference", "orderable", "tipo"];
+}
+/** Componenti **/
+class Component extends Model{
+    protected $table = "component";
+    protected $key = "id";
+    protected $fields = ["component_type_id", "codice", "descrizione", "qty", "has_contrast", "has_alteration"];
+
+    public function getCodiceComponente(){
+        $tipology_component = TipologyComponent::find($this->component_type_id);
+        return $tipology_component->codice . $this->codice;
+    }
+}
+/** Tipologia Componente **/
+class TipologyComponent extends Model{
+    protected $table = "component_type";
+    protected $key = "id";
+    protected $fields = ["codice", "label", "flag_codice_fit"];
+}
+/** Tipologia Componente **/
+class Alteration extends Model{
+    protected $table = "alteration";
+    protected $key = "id";
+    protected $fields = ["component_type_id", "label", "min_size", "max_size", "step", "alteration_type"];
+}
+/** Ricamo - Bottoni prodotto **/
+class Dettaglio extends Model{
+    protected $table = "dettagli";
+    protected $key = "id";
+    protected $fields = ["n_lettere", "stile", "simbolo", "label", "barcode", "prezzo", "tipo"];
+    const RIC_SIMBOLO = "simbolo";
+    const RIC_LETTERE = "iniziali";
+}
+/** Materiali **/
+class Materiale extends Model{
+    protected $table = "materiali";
+    protected $key = "id";
+    protected $fields = ["reference", "name", "color", "shrinkageX", "shrinkageY", "areaDensity", "areaDensity_2", "thickness", "defaultWidth", "composition", "finishing", "hs_code", "article_code", "made_in", "tipo"];
+    const TESS_PRINC = "Tessuto";
+    const TESS_SEC = "Tessuto 2";
+}
+/** Batch **/
+class Batch extends Model{
+    protected $table = "batch";
+    protected $key = "id";
+    protected $fields = ["reference", "material_reference", "bath", "supplier", "presentation"];
+}
+/** Clienti **/
+class Cliente extends Model{
+    protected $table = "clienti";
+    protected $key = "id";
+    protected $fields = [
+        "CRMId", "Cognome", "Nome", "DataNascita", "Sesso", "PartitaIva", "CodiceFiscale",
+        "Email", "Attivo", "Cancellato", "ConsensoMarketing", "ConsensoProfilazione", "ConsensoComunicazioneATerzi", "LinguaISO",
+        "Store", "Via", "Localita", "Provincia", "CAP", "Nazione", "Telefono", "ConsensoEmail", "RitiroInNegozio", "CodNeg", "NomeNeg",
+        "DescrizioneNeg", "IndirizzoNeg", "IndirizzoEstensioneNeg", "LocalitaNeg", "ProvinciaNeg", "CAPNeg", "NazioneNeg",
+        "TelefonoNeg", "PIVANeg"
+    ];
+}
+/** LectraAuth */
+class LectraAuth extends Model{
+    protected $table = "lectra_auth";
+    protected $key = "id";
+    protected $fields = ["res_key", "credentials", "token", "expire_time"];
+}

@@ -1,0 +1,372 @@
+<?php
+require_once ("/var/www/html/lectra/stage/Models.php");
+include_once ("/var/www/html/lectra/stage/utils/ApiCaller.php");
+require_once ("/var/www/html/lectra/stage/include/connector.php");
+
+class LectraAuthService {
+    const AUTH_PATH = "https://api.mylectra.com/auth/my-credentials/client-credential";
+    const MARGINE_TOKEN_SEC = 120; // Tolgo 2 minuti per evitare che il token scada in quel momento
+    /**
+     * Recupera token di autenticazione
+     * @param  string $credentials
+     * @param  string $resource
+     * @param  string $res_key  Chiave per gestire la risorsa (non uso $resource come chiave)
+     * @return string Token auth. Stringa vuota in caso di errore
+     */
+    public static function getToken(string $credentials, string $resource, string $res_key){
+        $token = self::getTokenFromDb($credentials, $res_key);
+        if(!$token){
+            $api_caller = new APICaller();
+            $headers = array();
+            $headers[] = "Authorization: Basic $credentials";
+            $headers[] = "Content-Type: application/json";
+            $api_caller->resetHeader();
+            $api_caller->setHeader($headers);
+            $body = array();
+            $body["audience"] = $resource;
+            $res = json_decode($api_caller->callAPI("POST", self::AUTH_PATH, json_encode($body, JSON_UNESCAPED_SLASHES)), true);
+
+            if(!isset($res["access_token"]) && !isset($res["expires_in"])){
+                return "";
+            }
+            $token = self::createToken($credentials, $res_key, $res["access_token"], $res["expires_in"]);
+            if(!$token){
+                return "";
+            }
+        }
+        return $token->token;
+    }
+    /**
+     * Recupera il token dal db. null nel caso non esiste
+     * @param  string $credentials
+     * @param  string $res_key
+     * @return LectraAuth|null
+     */
+    private static function getTokenFromDb(string $credentials, string $res_key){
+        $now = new DateTime();
+        $now->setTimezone(new DateTimeZone("Europe/Rome"));
+        $args = array(
+            "res_key = :key",
+            "credentials = :cred",
+            "expire_time > '".($now)->format(LectraAuth::DATE_FORMAT)."'"
+        );
+        $res = LectraAuth::whereRaw(implode(" AND ", $args), array(":key" => $res_key, ":cred" => $credentials));
+
+        return ($res && isset($res[0])) ? $res[0] : null;
+    }
+    /**
+     * Crea il token e lo salva nel db
+     * @param  string $credentials
+     * @param  string $res_key
+     * @param  string $token
+     * @param  int    $second_expire verranno tolti
+     * @return LectraAuth|null
+     */
+    private static function createToken(string $credentials, string $res_key, string $token, int $second_expire){
+        $now = new DateTime();
+        $now->setTimezone(new DateTimeZone("Europe/Rome"));
+        $auth_model = new LectraAuth();
+
+        $auth_model->res_key = $res_key;
+        $auth_model->credentials = $credentials;
+        $auth_model->token = $token;
+        $auth_model->expire_time = $now->add(new DateInterval("PT".($second_expire - self::MARGINE_TOKEN_SEC)."S"));
+
+        return ($auth_model->save() >= 0) ? $auth_model : -1;
+    }
+}
+
+class LectraPlanService {
+    const RES_PLAN = "https://plan-cuttingroom.api.mylectra.com";
+    const RES_KEY_PLAN = "RES_PLAN";
+
+    public function __construct(string $credentials){
+        $this->credentials = $credentials;
+    }
+
+    public function getHeaders(): array{
+        $token = LectraAuthService::getToken($this->credentials, self::RES_PLAN, self::RES_KEY_PLAN);
+        return array(
+            "Authorization: Bearer $token",
+            "Content-Type: application/json",
+            "x-api-version: 4.0"
+        );
+    }
+}
+
+class LectraOrderService{
+    const PLAN_PATH = "https://gateway-cuttingroom.cloudservices.mylectra.com/public/api/";
+    const DELAY_ORDER_END = "productorders/customorders/delayprocess";
+    const BATCH_ORDERS_END = "customorders/batch";
+    const LECTRA_DATE_FORMAT = "Y-m-d H:i:s.v";
+    /** @var APICaller $api_caller */
+    private $api_caller;
+    /** @var AS400Connector $db */
+    private $db;
+    /** @var array $placeholders */
+    private $placeholders;
+
+    public function __construct($api_caller, $lectra_credentials, $db){
+        $this->api_caller = $api_caller;
+        $this->lectra_plan = new LectraPlanService($lectra_credentials);
+        $this->db = $db;
+        $this->placeholders = array();
+    }
+    /**
+     * Invio ordine su Lectra
+     * Invia multipli ordini da 1 prodotto ciascuno,
+     * perchè la macchina non riesce a visualizzare quale sia il compoennte che sta tagliando
+     * e va messo l'identificativo del prodotto dentro il reference dell'ordine
+     * @param  string $token
+     * @param  Order $order
+     * @return array
+     */
+    public function send(Order $order){
+        $data = array();
+        $errors = array();
+        $status = 1;
+        $products = ProductOrder::whereRaw("order_id = :order_id AND inviato = 0", array(":order_id" => $order->id));
+        foreach ($products as $order_product){
+            $this->placeholders = array(); // Reset placeholders
+            $data_order = $this->prepareLectraOrderData($order, $order_product);
+            $this->api_caller->resetHeader();
+            $this->api_caller->setHeader($this->lectra_plan->getHeaders());
+            $json_data = $this->jsonEncodePlaceholder($data_order, $this->placeholders);
+            $res = $this->api_caller->callAPIComplete(
+                "POST",
+                self::PLAN_PATH . self::DELAY_ORDER_END,
+                $json_data
+            );
+            // Manage response
+            $order_reference = $this->getOrderReference($order, $order_product);
+            $r = $this->manageResponse($res);
+            if($r["status"]){
+                $order_product->inviato = 1;
+                $order_product->save(); // Commento x test
+            }else{
+                $status = 0;
+                $errors[] = $r["error"];
+            }
+            $data[$order_reference] = $r;
+        }
+        error_log(print_r($json_data, true));
+        error_log(print_r($data, true));
+        return array("status" => $status, "error" => implode(" , ", $errors), "data" => $data);
+    }
+    /**
+     * Prepara i dati dal model dell'ordine
+     * @param  Order  $order    model ordine
+     * @param  ProductOrder $order_product
+     * @return array        dati per invio ordine a lectra
+     */
+    public function prepareLectraOrderData(Order $order, ProductOrder $order_product){
+        // $order_dto = new OrderDTO($order->id);
+        $order_dto = array();
+        $order_dto["reference"] = $this->getOrderReference($order, $order_product);
+        $order_dto["comment"] = $order->comment;
+        $order_dto["factory"] = $order->factory;
+        $order_dto["salesPoint"] = $order->salesPoint." - ".$this->getNegFromCodneg($order->salesPoint);
+        $order_dto["priority"] = $order->priority;
+        $order_dto["deliveryDate"] = $this->formatLectraDate($order->deliveryDate);
+        $order_dto["orderDate"] = ($order->orderDate) ? $this->formatLectraDate($order->orderDate) : null;
+        $order_dto["measuresUnit"] = $order->measuresUnit;
+        $order_dto["sequenceNumber"] = $order->id;
+        // Get Products in order
+        $products = ProductOrder::where("order_id", $order->id);
+
+        $order_dto["products"] = array($this->prepareLectraOrderProductData($order_product));
+
+        return $order_dto;
+    }
+    /**
+     * Crea il reference del prodotto
+     * @param  Order        $order
+     * @param  ProductOrder $product
+     * @return string
+     */
+    private function getOrderReference(Order $order, ProductOrder $product): string{
+        return "ORDER_".$order->id."_PROD_".$product->sequenceNumber;
+    }
+    /**
+     * Prepara i dati del model del prodotto all'interno dell'ordine
+     * @param  ProductOrder $order_product
+     * @return array
+     */
+    public function prepareLectraOrderProductData(ProductOrder $order_product){
+        $json_order_prod = array();
+
+        $product = Product::find($order_product->product_id);
+        $json_order_prod["productReference"] = $product->reference;
+        $json_order_prod["gender"] = $order_product->gender;
+        $json_order_prod["comment"] = $order_product->comment;
+        $json_order_prod["quantity"] = $order_product->quantity;
+        $json_order_prod["assortment"] = $order_product->assortment;
+        $json_order_prod["grading"] = ":GRADING:";
+        $this->placeholders[":GRADING:"] = $order_product->grading;
+        $json_order_prod["specialGrading1"] = $order_product->specialGrading1;
+        $json_order_prod["specialGrading2"] = null;
+        $json_order_prod["bodyReference"] = $order_product->bodyReference;
+        $components = ProductOrderComponent::where("order_product_id", $order_product->id);
+        $boc1 = array();
+        $boc = array();
+        $bom_saved_1 = array();
+        $bom_saved_2 = array();
+        /** @var ProductOrderComponent $order_component */
+        foreach ($components as $order_component){
+            $component = Component::find($order_component->component_id);
+            $tipology_component = TipologyComponent::find($component->component_type_id);
+            $component_reference = ($tipology_component->flag_codice_fit)
+                ? $product->tipo . "-" . $component->getCodiceComponente()
+                : $component->getCodiceComponente();
+            // BOC
+            $materiale1 = Materiale::find($order_component->material_id);
+            $materiale2 = Materiale::find($order_component->contrastReference);
+            $json_boc = array();
+            $json_boc["componentReference"] = ":COMP_REF_$component_reference:";
+            $this->placeholders[":COMP_REF_$component_reference:"] = $component_reference;
+            $json_boc["comment"] = $order_component->comment;
+            // $json_boc["contrastReference"] = ($materiale2) ? $materiale2->reference : "";
+            $json_boc["contrastReference"] = null;
+            $json_boc["category"] = null; // Da vedere
+            $json_boc["quantity"] = $component->qty;
+            $boc[] = $json_boc;
+            // BOM (Calculated later)
+            // Primary
+            if(!isset($bom_saved_1[$materiale1->reference]))
+                $bom_saved_1[$materiale1->reference] = array();
+            $bom_saved_1[$materiale1->reference][] = array("ref" => ":COMP_REF_$component_reference:", "contrastRef" => $json_boc["contrastReference"]);
+            // Secondary (if exist)
+            if($component->has_contrast == 1 && $materiale2){
+                if(!isset($bom_saved_2[$materiale2->reference]))
+                    $bom_saved_2[$materiale2->reference] = array();
+                $bom_saved_2[$materiale2->reference][] = array("ref" => ":COMP_REF_$component_reference:", "contrastRef" => $json_boc["contrastReference"]);
+            }
+            // Free memory
+            unset($json_boc);
+        }
+        $json_order_prod["boc"] = $boc;
+        // BOM
+        $bom = $this->createBOM(Materiale::TESS_PRINC, $bom_saved_1);   // Primary
+        if(!empty($bom_saved_2)){   // Secondary (if exist)
+            $bom = array_merge($bom, $this->createBOM(Materiale::TESS_SEC, $bom_saved_2));
+        }
+        $json_order_prod["bom"] = $bom;
+        // Alterations
+        $array_alt = array();
+        $alterations = ProductOrderAlteration::where("order_product_id", $order_product->id);
+        /** @var ProductOrderAlteration $order_alteration */
+        foreach ($alterations as $order_alteration){
+            $alteration = Alteration::find($order_alteration->alteration_id);
+            $json_order_prod_alt = array();
+            $json_order_prod_alt["alterationReference"] = $alteration->label;
+            $json_order_prod_alt["value"] = $order_alteration->value;
+            $array_alt[] = $json_order_prod_alt;
+        }
+        $json_order_prod["alterations"] = $array_alt;
+        $json_product[] = $json_order_prod;
+
+        return $json_order_prod;
+    }
+
+    private function createBOM($material_position, $bom_saved){
+        $bom = array();
+        foreach ($bom_saved as $material_ref => $components) {
+            $json_bom = array();
+            $json_bom["materialPosition"] = $material_position;
+            $json_bom["materialReference"] = ":MATERIAL_REF_$material_ref:";
+            $this->placeholders[":MATERIAL_REF_$material_ref:"] = $material_ref;
+            $json_bom["batchReference"] = null;
+            $json_bom["comment"] = "";
+            $json_bom["components"] = array();
+            foreach ($components as $component_data) {
+                $json_bom_component = array();
+                $json_bom_component["componentReference"] = $component_data["ref"];
+                $json_bom_component["contrastReference"] = $component_data["contrastRef"];
+                $json_bom_component["contrastElementReference"] = null; // Da vedere
+                $json_bom["components"][] = $json_bom_component;
+                unset($json_bom_component);
+            }
+            $bom[] = $json_bom;
+            unset($json_bom);
+        }
+        return $bom;
+    }
+    /**
+     * Recupera il nome del negozio dal codice
+     * @param  int $codneg
+     * @return string
+     */
+    private function getNegFromCodneg($codneg){
+        $query = "SELECT TRIM(substring(filtab, 4, 30)) AS NOME FROM az101.FTABPF ".
+            "WHERE KEYFTA LIKE 'S%' AND INT(substring(KEYFTA, 4, 3)) = INT($codneg)";
+        $res = $this->db->query($query);
+        return ($res && is_array($res) && isset($res[0])) ? $res[0]->NOME : "";
+    }
+    /**
+     * Conversione in JSON per rispettare i tipi delle variabili
+     * @param  array  $data   dati da convertire in JSON
+     * @param  array  $params parametri da sostituire come stringhe
+     * @return string
+     */
+    private function jsonEncodePlaceholder(array $data, array $params = array()){
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+        return str_replace(array_keys($params), array_values($params), $json);
+    }
+    /**
+     * Ritrona stringa convertita come 2020-07-12T08:36:24.543Z
+     * @param  DateTime $date
+     * @return string
+     */
+    private function formatLectraDate(DateTime $date){
+        $date_str = $date->format(self::LECTRA_DATE_FORMAT);
+        return str_replace(" ", "T", $date_str) . "Z";
+    }
+    /**
+     * Invia il batch di ordini per l'esecuzione
+     * @param  string $reference           batch reference
+     * @param  array  $order_references    Lista reference ordini creati
+     * @return array
+     */
+    public function sendOrderBatch(string $batch_reference, array $order_references){
+        $data = array("reference" => $batch_reference);
+        $data["customOrderReferences"] = $order_references;
+        $this->api_caller->resetHeader();
+        $this->api_caller->setHeader($this->lectra_plan->getHeaders());
+        $json_data = $this->jsonEncodePlaceholder($data);
+
+        $res = $this->api_caller->callAPIComplete(
+            "POST",
+            self::PLAN_PATH . self::BATCH_ORDERS_END,
+            $json_data
+        );
+
+        return $this->manageResponse($res);
+    }
+    /**
+     * Gestisce la risposta dalle API di Lectra
+     * @param  array $res
+     * @return array
+     */
+    public function manageResponse($res){
+        $body = json_decode($res["body"], true);
+        $status = false;
+        $error = "";
+        $data = array();
+        if(isset($res["info"]["http_code"])){
+            $http_code = $res["info"]["http_code"];
+            if($http_code >= 200 && $http_code <= 204){
+                $status = true;
+                $data = $body;
+            }else if($http_code >= 400 && $http_code <= 451){
+                $status = false;
+                $error = "Error code: $http_code";
+                $data = $body;
+            }else{
+                $status = false;
+                $error = "Error code: $http_code";
+            }
+        }
+        return array("status" => $status, "error" => $error, "data" => $data);
+    }
+}
+?>
