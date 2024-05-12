@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteCond %{HTTPS} =off
+    RewriteRule ^ https://mygalleryalbum.altervista.org/public%{REQUEST_URI} [L,R=301]
+
+    RewriteBase /L7x
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+   
