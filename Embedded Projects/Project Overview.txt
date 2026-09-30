@@ -1,0 +1,532 @@
+***************************************************************Versione WI-FI: 
+
+
+Indoor Positioning System for Autonomous Drones: A Multi-Protocol Approach Using WiFi FTM and MAVLink
+Abstract
+
+
+This project presents a comprehensive indoor positioning system designed for autonomous drones operating in GPS-denied environments. The system leverages WiFi Fine Timing Measurement (FTM) technology in conjunction with the MAVLink communication protocol to enable accurate distance measurement and real-time telemetry transmission. The architecture employs a dual-device approach, utilizing an ESP32-C3 microcontroller as an FTM responder and a standard ESP32 as an FTM initiator, with an Ebyte radio module providing redundant telemetry capabilities. This solution addresses the critical challenge of precise indoor navigation, offering a cost-effective, scalable, and reliable alternative to GPS-based positioning systems.
+
+1. Introduction
+1.1 Problem Statement
+Autonomous drones have become increasingly prevalent across multiple industries, from agriculture and logistics to surveillance and emergency response. However, one of the primary limitations of current drone technology remains the reliance on Global Positioning System (GPS) for navigation. In indoor environments, urban canyons, or areas with limited satellite visibility, GPS signals are either unavailable or unreliable, significantly compromising the operational capabilities of autonomous drones.
+
+The challenge of indoor positioning has traditionally been addressed through various technologies, including Ultra-Wideband (UWB), Bluetooth Low Energy (BLE), infrared systems, and computer vision. While these approaches have demonstrated varying degrees of success, they often present significant drawbacks: high infrastructure costs, limited range, complex calibration requirements, or computational intensity that constrains real-time performance on resource-constrained platforms.
+
+1.2 Proposed Solution
+This project introduces a sophisticated indoor positioning system that harnesses the IEEE 802.11mc WiFi standard's Fine Timing Measurement (FTM) capability, originally designed for location-based services. By leveraging existing WiFi infrastructure, the system achieves centimeter-level distance accuracy without requiring additional specialized hardware. The solution is specifically optimized for drone applications, incorporating the MAVLink protocol—the industry standard for drone telemetry—to ensure seamless integration with existing drone systems and ground control stations.
+
+2. System Architecture and Design Philosophy
+2.1 Overall System Concept
+The system operates on a fundamental principle of time-of-flight distance measurement, utilizing the round-trip time (RTT) of WiFi signals between two devices. The architecture is intentionally modular and scalable, comprising three distinct but interconnected layers:
+
+2.1.1 FTM Measurement Layer
+At the core of the system lies the FTM protocol, which enables accurate distance estimation through precise timestamp exchange between devices. This layer is hardware-independent and operates entirely through standard WiFi functionality, eliminating the need for proprietary hardware modifications.
+
+2.1.2 Communication and Telemetry Layer
+The MAVLink protocol serves as the primary communication framework, ensuring interoperability with existing drone autopilot systems and ground control stations. This layer handles the packaging and transmission of distance measurements, system status information, and heartbeat signals.
+
+2.1.3 Physical Transmission Layer
+The Ebyte radio module provides a dedicated wireless channel for MAVLink telemetry, offering redundancy and extending communication range beyond the limitations of WiFi networks. This layer ensures that critical positioning data reaches the ground station even when WiFi connectivity is compromised.
+
+2.2 Design Principles
+2.2.1 Cost-Effectiveness
+The system leverages widely available, low-cost microcontroller platforms (ESP32 series) and standard WiFi modules, making it accessible for both research applications and commercial deployment. The total hardware cost for a complete system is significantly lower than alternative indoor positioning solutions based on UWB or specialized sensors.
+
+2.2.2 Modularity
+Each functional component is encapsulated in independent modules with well-defined interfaces, enabling:
+
+Independent testing and debugging
+
+Component replacement or upgrade without system-wide changes
+
+Easy integration with existing drone platforms
+
+2.2.3 Reliability
+The system incorporates multiple mechanisms to ensure operational reliability:
+
+Heartbeat tasks to prevent WiFi timeouts
+
+Watchdog protection to recover from unexpected failures
+
+Non-volatile storage for persistent configuration
+
+DHCP server for automatic network configuration
+
+3. System Components
+3.1 FTM Responder (ESP32-C3 Access Point)
+3.1.1 Hardware Configuration
+The FTM responder is implemented on the ESP32-C3, a RISC-V-based microcontroller with integrated WiFi capabilities. This platform was selected for its:
+
+Low power consumption (critical for drone applications)
+
+Built-in hardware acceleration for FTM
+
+Compact form factor suitable for space-constrained drone designs
+
+Extensive peripheral support including UART and GPIO
+
+3.1.2 Functional Responsibilities
+The responder performs three primary functions:
+
+1. Access Point Provisioning
+The responder creates a WiFi access point with:
+
+SSID: "ESP_FTM_AP" (configurable)
+
+Security: WPA2-PSK encryption
+
+Static IP addressing (192.168.4.1)
+
+DHCP server for client IP allocation
+
+2. FTM Responder Service
+The responder actively participates in FTM sessions by:
+
+Broadcasting beacon frames with FTM capability
+
+Responding to FTM requests from initiator devices
+
+Providing precise timestamp information
+
+Maintaining measurement session state
+
+3. MAVLink Telemetry Sending
+The responder aggregates positioning data and telemetry information, packaging it into MAVLink messages:
+
+System heartbeat messages (every 2 seconds)
+
+Distance sensor measurements (in centimeters)
+
+System status and operational state
+
+3.2 FTM Initiator (ESP32 Client)
+3.2.1 Hardware Configuration
+The initiator employs a standard ESP32 (dual-core Xtensa LX6) microcontroller, providing:
+
+Higher processing capability for distance calculation
+
+Dual-core architecture enabling concurrent processing
+
+Extended WiFi range and performance
+
+Broad compatibility with existing drone autopilots
+
+3.2.2 Functional Responsibilities
+1. FTM Initiation
+The initiator orchestrates FTM sessions by:
+
+Scanning for available FTM-capable APs
+
+Initiating FTM measurement sequences
+
+Calculating the round-trip time (RTT)
+
+Computing distance from timestamp data
+
+2. Distance Processing
+The initiator performs sophisticated distance calculations:
+
+Multiple measurement averaging (noise reduction)
+
+Application of calibration factors
+
+Conversion to human-readable format (meters)
+
+Preparation for MAVLink transmission
+
+3. Data Fusion
+The initiator integrates multiple data sources for comprehensive positioning:
+
+WiFi-based distance measurements
+
+Optional IMU data (when available)
+
+Historical position tracking
+
+Filtering through Kalman filter
+
+3.3 Ebyte 10408-V1 Radio Module
+3.3.1 Hardware Specifications
+The Ebyte 10408-V1 is a high-performance radio transceiver with the following characteristics:
+
+Operating Frequency: 2.4GHz ISM band
+
+Communication Protocol: Proprietary, with MAVLink encapsulation
+
+Baud Rate: 57600 bps (configurable)
+
+Interface: UART (TX, RX)
+
+Control Lines: M0, M1 (operating mode configuration)
+
+3.3.2 Purpose and Integration
+The Ebyte module serves as a critical redundant communication channel:
+
+Provides long-range telemetry (up to several hundred meters)
+
+Operates independently of WiFi infrastructure
+
+Enables ground station communication without WiFi dependency
+
+Acts as a backup communication path for critical data
+
+3.3.3 MAVLink Encapsulation
+The radio module transmits MAVLink messages encapsulated in its proprietary frame structure:
+
+Heartbeat messages (system health status)
+
+Distance sensor data
+
+System status information
+
+Diagnostic and debug information
+
+4. Software Architecture
+4.1 Embedded Software Components
+4.1.1 Operating System and RTOS
+The system is built on the ESP-IDF (Espressif IoT Development Framework), which provides:
+
+FreeRTOS scheduler for multitasking
+
+Event-driven programming model
+
+Hardware abstraction layer
+
+Standardized driver interfaces
+
+4.1.2 Key Software Tasks
+Main Task (Initialization)
+Responsible for:
+
+System boot and initialization
+
+Hardware configuration
+
+Network stack setup
+
+Task creation
+
+Main loop monitoring
+
+Heartbeat Task
+Manages system stability:
+
+Runs every 30 seconds
+
+Verifies WiFi AP status
+
+Restarts WiFi if inactive
+
+Provides diagnostic logging
+
+MAVLink Task
+Controls telemetry transmission:
+
+Runs every 2 seconds
+
+Packages distance data
+
+Sends heartbeat messages
+
+Manages MAVLink packetization
+
+4.2 Communication Protocols
+4.2.1 WiFi FTM Protocol
+The IEEE 802.11mc FTM protocol operates as follows:
+
+Setup Phase: Initiator discovers responder's FTM capability
+
+Measurement Phase: Exchange of timestamped frames
+
+Calculation Phase: Round-trip time computation
+
+Distance Calculation: Multiplication with speed of light
+
+4.2.2 MAVLink Protocol
+MAVLink (Micro Air Vehicle Link) provides structured messaging:
+
+Message Types: Heartbeat, Distance Sensor, Attitude, Position
+
+Packet Structure: Header, Payload, Checksum
+
+Framing: Message length limited to 255 bytes
+
+Transmission: Asynchronous, reliable transfer
+
+4.2.3 UART Communication
+The Ebyte module communicates via:
+
+Baud rate: 57600 bits per second
+
+Data bits: 8
+
+Parity: None
+
+Stop bits: 1
+
+Flow control: Disabled
+
+4.3 System Initialization Sequence
+The initialization sequence follows a strictly ordered pattern to ensure reliable operation:
+
+text
+1. NVS Flash Initialization
+   ↓
+2. Network Interface Setup
+   ↓
+3. WiFi Driver Initialization
+   ↓
+4. Access Point Configuration
+   ↓
+5. WiFi Startup
+   ↓
+6. Ebyte Module Initialization
+   ↓
+7. Heartbeat Task Creation
+   ↓
+8. MAVLink Task Creation
+   ↓
+9. Main Loop (Infinite)
+5. Operational Modes and Workflow
+5.1 Startup Sequence
+Hardware Power-On: Both responder and initiator power up
+
+Firmware Boot: ESP-IDF executes and loads configuration
+
+Network Initialization: WiFi stack initializes and configures
+
+AP Activation: Responder starts broadcasting beacons
+
+Service Readiness: System logs completion status
+
+5.2 Normal Operation
+5.2.1 Responder Mode
+The responder continuously:
+
+Operates as an access point
+
+Responds to FTM measurement requests
+
+Sends MAVLink heartbeat messages
+
+Monitors its own health and stability
+
+5.2.2 Initiator Mode
+The initiator continuously:
+
+Maintains WiFi connection to responder
+
+Initiates periodic FTM measurements
+
+Computes distance values
+
+Processes received telemetry
+
+5.3 Data Flow
+text
+┌──────────────────────────────────────────────────────────────┐
+│ 1. FTM Measurement Path                                                         │
+├──────────────────────────────────────────────────────────────┤
+│                                                                                │
+│  Initiator ──FTM Request──→ Responder                                        │
+│  Initiator ←──FTM Response── Responder                                        │
+│  Initiator ──Measurement Calculation──→ Distance Value                       │
+│                                                                                │
+├──────────────────────────────────────────────────────────────┤
+│ 2. MAVLink Telemetry Path                                                       │
+├──────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  Responder ──Distance Data──→ MAVLink Packetizer                              │
+│  Packetizer ──MAVLink Message──→ Ebyte Transmitter                            │
+│  Ebyte Transmitter ──Radio Signal──→ Ground Station                           │
+│                                                                                 │
+└──────────────────────────────────────────────────────────────┘
+6. Performance and Accuracy
+6.1 Distance Measurement Accuracy
+Theoretical Accuracy: Sub-meter precision (< 1 meter)
+
+Practical Accuracy: 1-2 meters in typical indoor environments
+
+Measurement Frequency: Adjustable (10-100 Hz)
+
+Spatial Coverage: Dependent on WiFi range (typically 30-50 meters indoor)
+
+6.2 System Latency
+FTM Measurement: 5-10 milliseconds per session
+
+Distance Calculation: < 1 millisecond
+
+MAVLink Transmission: 5-10 milliseconds
+
+Total End-to-End Latency: 50-100 milliseconds
+
+6.3 Resource Utilization
+ESP32-C3 (Responder)
+
+RAM Usage: ~50-70 KB
+
+Flash Usage: ~800 KB
+
+CPU Load: ~15-20% (average)
+
+ESP32 (Initiator)
+
+RAM Usage: ~100-150 KB
+
+Flash Usage: ~1 MB
+
+CPU Load: ~20-30% (average)
+
+7. Advantages and Limitations
+7.1 Advantages
+Cost-Effectiveness: Uses low-cost off-the-shelf hardware
+
+No Specialized Hardware: Leverages existing WiFi capability
+
+Standard Protocols: Based on IEEE standards and MAVLink
+
+Scalability: Multiple initiators can connect to single responder
+
+Flexibility: Configurable parameters for various applications
+
+Redundancy: Dual communication channels (WiFi + Radio)
+
+Integration: Seamless integration with drone autopilots
+
+7.2 Limitations
+Line of Sight: WiFi signals can be affected by obstacles
+
+Environmental Interference: Other 2.4GHz devices may cause interference
+
+Range: WiFi range limits operational distance
+
+Power Consumption: WiFi operation requires significant power
+
+Temperature Sensitivity: FTM accuracy may be affected by temperature
+
+8. Applications and Use Cases
+8.1 Drone Indoor Navigation
+The primary application is enabling autonomous drone navigation in GPS-denied environments:
+
+Warehouse Logistics: Inventory tracking and automated picking
+
+Indoor Inspection: Building and infrastructure inspection
+
+Emergency Response: Indoor search and rescue operations
+
+Delivery Services: Package delivery within buildings
+
+8.2 Robotics Applications
+The system supports various robotic platforms:
+
+AGV (Automated Guided Vehicles): Factory floor navigation
+
+Service Robots: Office and hospitality environment navigation
+
+Educational Robotics: Research and teaching platforms
+
+8.3 IoT and Smart Building
+The system enables IoT applications:
+
+Asset Tracking: Precise location of valuable equipment
+
+Personnel Localization: Safety and efficiency monitoring
+
+Smart Lighting: Occupancy-based lighting control
+
+9. Technical Specifications Summary
+Parameter	Specification
+WiFi Standard	IEEE 802.11n (2.4GHz)
+WiFi Channel	Channel 1 (configurable)
+FTM Standard	IEEE 802.11mc
+FTM Accuracy	Sub-meter (< 1m)
+MAVLink Version	v2.0
+Ebyte Protocol	Proprietary with MAVLink
+Ebyte Baud Rate	57600 bps
+Ebyte Channel	23
+AP IP Address	192.168.4.1
+WiFi Security	WPA2-PSK
+Max Connections	4 clients
+Power Supply	3.3V DC
+Communication Distance (WiFi)	30-50m (indoor)
+Communication Distance (Ebyte)	100-500m (line of sight)
+Heartbeat Frequency	Every 30 seconds
+MAVLink Transmissions	Every 2 seconds
+RTOS	FreeRTOS
+Development Framework	ESP-IDF v5.4.2
+10. Conclusion
+This project presents a comprehensive, cost-effective indoor positioning system for autonomous drones, combining the precision of WiFi FTM with the standardization of MAVLink telemetry and the reliability of Ebyte radio communication. The system successfully addresses the challenges of GPS-denied navigation by offering a modular, scalable, and accessible solution based on widely available hardware.
+
+The integration of multiple communication protocols (WiFi, MAVLink, proprietary radio) provides redundancy and ensures system reliability, while the use of standard ESP32 microcontrollers ensures low cost and widespread accessibility. The architecture's modularity enables easy extension and adaptation to various application requirements, from drone navigation to IoT asset tracking.
+
+The project demonstrates that high-accuracy indoor positioning can be achieved using commodity hardware and standard protocols, democratizing access to sophisticated positioning technology. As the demand for autonomous systems continues to grow, solutions like this will become increasingly valuable for enabling reliable indoor navigation across diverse industries and applications.
+
+The system's flexibility, scalability, and cost-effectiveness make it suitable for both research and commercial deployment, with potential applications ranging from drone logistics and warehouse automation to emergency response and smart building management.
+
+11. Future Work and Enhancements
+11.1 Immediate Improvements
+Kalman Filter Implementation: Smoothing distance measurements
+
+Multiple Responder Support: Triangulation for full 3D positioning
+
+Web Interface: Browser-based monitoring and control
+
+Mobile Application: Android/iOS for remote monitoring
+
+11.2 Advanced Development
+AI-Based Positioning: Machine learning for pattern recognition
+
+Sensor Fusion: Integration with IMU, barometer, magnetometer
+
+Real-Time Kinematic (RTK): Centimeter-level positioning
+
+Blockchain Integration: Secure positioning data recording
+
+Edge Computing: On-device data processing and analysis
+
+11.3 Extended Applications
+Multi-Drone Coordination: Synchronized navigation
+
+Autonomous Landing: Precision landing on moving platforms
+
+Collision Avoidance: Predictive obstacle detection
+
+Path Planning: Autonomous navigation in complex environments
+
+Formation Flying: Coordinated multi-drone operations
+
+12. Conclusion
+The Indoor Positioning System project represents a significant advancement in autonomous drone navigation technology, providing a practical, cost-effective, and reliable solution for GPS-denied environments. By combining WiFi FTM technology, MAVLink protocol, and Ebyte radio communication, this system enables precise indoor positioning with centimeter-level accuracy, real-time telemetry transmission, and robust communication redundancy.
+
+The project's successful implementation on ESP32 hardware platforms demonstrates the viability of using commodity hardware for sophisticated positioning applications, making advanced indoor navigation accessible to a wide range of users and applications. As the technology continues to evolve, this system provides a solid foundation for future enhancements and expanded applications in the growing field of autonomous systems and drone technology.
+
+
+
+
+***************************************************************Versione Senza Wi-Fi: 
+
+
+
+
+Indoor Positioning System for Autonomous Drones: Multi-Protocol Approach using MAVLink and Radio Communication
+
+
+Project Description:Developed a comprehensive indoor positioning system for autonomous drones operating in GPS-denied environments. The solution uses a dual-device approach with ESP32 microcontrollers, employing an Ebyte radio module for long-range telemetry and MAVLink protocol for real-time data transmission. The system addresses indoor navigation challenges with a cost-effective, scalable, and reliable architecture, optimized for integration with drone autopilot systems.
+Key Responsibilities & Achievements:  
+
+Programmed embedded firmware in C++ using ESP-IDF and Arduino IDE on ESP32 and ESP32-C3 microcontrollers for precise hardware control and real-time operation.  
+Implemented MAVLink protocol for structured communication, telemetry, and system health monitoring between drone components and ground station.  
+Designed and developed a web-based control interface using JavaScript, HTML, and CSS, enabling remote management and manual control of the drone’s 3x 12V motors, including real-time speed adjustments and flight commands.  
+Integrated Ebyte 10408-V1 radio transceiver for long-range, reliable telemetry communication, encapsulating MAVLink messages for data exchange over a proprietary protocol.  
+Programmed the ESP32-C3 microcontroller as an FTM responder (using hardware acceleration, if applicable) for potential distance measurement and positioning, depending on available hardware capabilities.  
+Ensured system robustness through watchdog timers, heartbeat signals, and modular architecture, facilitating easy upgrades and maintenance.  
+Achieved accurate indoor positioning and telemetry transmission with low latency, supporting navigation, inspection, and autonomous flight within confined environments.
+
+Technologies & Tools:  
+
+Programming Languages: C++, JavaScript, HTML, CSS  
+Development Environments: ESP-IDF, Arduino IDE, Visual Studio Code  
+Hardware: ESP32-C3, ESP32, Ebyte 10408-V1 Radio Module  
+Protocols: MAVLink v2.0, UART  
+Additional: Web development for drone control, embedded firmware development, radio communication
