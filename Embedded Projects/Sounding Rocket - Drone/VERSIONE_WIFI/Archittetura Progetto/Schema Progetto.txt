@@ -1,0 +1,45 @@
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                               IL TUO PROGETTO COMPLETO                                                                       │
+├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                                              │
+│  🛸 DRONE (VOLO)                    📡 COMUNICAZIONE RADIO      🖥️ STAZIONE DI TERRA                                        │
+│                                                                                                                               │
+│  ┌──────────────────────────────┐          ┌──────────────────────────────┐                                │
+│  │  ESP32 (SERVER)                        │         │  		ESP32-C3 (MASTER)       │                               │
+│  │  (FTM Responder + AP)                  │         │  		(FTM Initiator)         │                               │
+│  │                                        │         │                                        │                               │
+│  │  ⚡ Funzioni:                          │         │  	⚡ Funzioni:                    │                               │
+│  │  - Crea AP WiFi                        │         │  	- Si connette all'AP            │                               │
+│  │  - Risponde a richieste FTM            │         │ 	- Richiede misurazioni FTM      │                               │
+│  │  - Invia MAVLink via Ebyte             │         │ 	- Applica filtri                │                               │
+│  │    alla ground station                 │         │      - Riceve MAVLink (solo log)       │                               │
+│  │  - Riavvia AP se cade                  │         │  	- Stampa JSON su USB            │                               │
+│  └──────────────┬───────────────┘          └──────────────┬───────────────┘                                │
+│                      │                                                   │                                                   │
+│                      │ UART (57600 baud)                                 │ UART (57600 baud)                                 │
+│                      ▼                                                   ▼                                                  │
+│  ┌──────────────────────────────┐          ┌──────────────────────────────┐                               │
+│  │  Ebyte E22-400T30D                      │        │  Ebyte E22-400T30D                    │                               │
+│  │  (Radio a bordo)                        │        │  (Radio a terra)                      │                               │
+│  │  433 MHz                                │        │  433 MHz                              │                               │
+│  └──────────────┬───────────────┘          └──────────────┬───────────────┘                               │
+│                      │                                                   │                                                   │
+│                      └───────────────🌐 LoRa 433 MHz ───────────┘                                                    │
+│                                 │                                         │                                                  │
+│                                 │                                         │ USB (debug)                                      │
+│                                 │                                         ▼                                                  │
+│                                 │                          ┌──────────────────────────────┐                         │
+│                                 │                          │  PC + Visual Studio Code               │                        │
+│                                 │                          │  (Monitor Seriale)                     │                        │
+│                                 │                          │  - Log del MASTER                      │                        │
+│                                 │                          │  - JSON del MASTER                     │                        │
+│                                 │                          └──────────────────────────────┘                         │
+│                                 │                                                                                            │
+│                                 │                          ┌──────────────────────────────┐                        │
+│                                 │                          │  Ebyte RX (a terra)                   │                        │
+│                                 │                          │  + QGroundControl                     │                        │
+│                                 │                          │  - Visualizza il drone                │                        │
+│                                 │                          │  - Riceve i MAVLink                   │                        │
+│                                 │                          └──────────────────────────────┘                        │
+│                                                                                                                              │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘

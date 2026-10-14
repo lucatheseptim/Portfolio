@@ -1,0 +1,21 @@
+
+Per modificare i parametri con il programma ( RF Settings ) usare questa configurazione , il segnale M1 deve stare a livello logico alto 5V: 
+
+
+         USB-UART                               EBYTE
+         ┌──────────────┐                     ┌──────────────┐
+         │                  │                     │                  │
+         │   [USB]          │                     │   [ANTENNA]      │
+         │    │             │                     │    │            │
+         │    ▼            │                     │    ▼             │
+         │  5V ─────────┼─────────────────────┼─── VCC     │
+         │  GND─────────┼─────────────────────┼─── GND     │
+         │  TXD─────────┼─────────────────────┼─── RXD     │
+         │  RXD─────────┼─────────────────────┼─── TXD     │
+         │  GND─────────┼─────────────────────┼─── M0      │
+         │  5V ─────────┼─────────────────────┼─── M1      │
+         │  3V3             │                     │   AUX            │
+         │                  │                     │                  │
+         └──────────────┘                     └──────────────┘
+               │                                            │
+               └─────────── CAVI DUPONT ─────────────┘

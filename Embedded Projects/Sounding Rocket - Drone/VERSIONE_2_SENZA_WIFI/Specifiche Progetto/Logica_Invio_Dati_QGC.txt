@@ -1,0 +1,34 @@
+┌─────────────────────────────────────────────────────────────┐
+│                    LIVELLO 1: TASK                                             │
+│                                                                                │
+│  mavlink_send_task()  ← loop ogni 2 secondi                                    │
+│         │                                                                      │
+│         │ chiama 6 funzioni                                                    │
+│         ▼                                                                      │
+│  send_mavlink_heartbeat()                                                       │
+│  send_mavlink_distance()                                                        │
+│  send_mavlink_position()                                                        │
+│  send_mavlink_sys_status()                                                      │
+│  send_mavlink_autopilot_version()                                               │
+│  send_mavlink_mission_current()                                                 │
+│                                                                                 │
+├──────────────────────────────────────────────────────────────┤
+│                    LIVELLO 2: PACKING                                           │
+│                                                                                 │
+│  mavlink_msg_*_pack()  ← crea il messaggio MAVLink                              │
+│         │                                                                       │
+│         ▼                                                                       │
+│  mavlink_msg_to_send_buffer()  ← serializza in byte                             │
+│                                                                                 │
+├──────────────────────────────────────────────────────────────┤
+│                    LIVELLO 3: INVIO FISICO                                      │
+│                                                                                 │
+│  uart_write_bytes()  ← scrive i byte sulla UART                                 │
+│         │                                                                       │
+│         ▼                                                                       │
+│  Modulo Ebyte  ← trasmette via radio E QGC Riceve i dati                         │
+│         │                                                                       │
+│         ▼                                                                       │
+│  QGroundControl  ← riceve via Ebyte RX + USB                                    │
+│                                                                                 │
+└──────────────────────────────────────────────────────────────┘
