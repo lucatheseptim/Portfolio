@@ -530,3 +530,99 @@ Development Environments: ESP-IDF, Arduino IDE, Visual Studio Code
 Hardware: ESP32-C3, ESP32, Ebyte 10408-V1 Radio Module  
 Protocols: MAVLink v2.0, UART  
 Additional: Web development for drone control, embedded firmware development, radio communication
+
+
+
+***************************************************************Progetto Satellite Solare — Solar Tracking Satellite:
+
+
+
+
+Solar-Tracking Satellite Demonstrator: Evolution from a Dual-Board Architecture to a Single-Board Controller
+
+Abstract
+
+This project presents a solar-tracking control system for a satellite demonstrator: a two-axis mechanism that locates the brightest light source and orients itself toward it, while three flywheel motors are driven from the same irradiance measurements. The system was developed in two generations. Version 1.0 split the work across two microcontrollers — an ESP32-C3 hosting the web interface and an STM32F103 executing the control loop — connected by a custom SPI bridge. Version 2.0 consolidates both roles onto a single ESP32-C3, removing the second board and the SPI protocol entirely while reusing the existing web interface unchanged. The evolution illustrates a practical engineering trade-off between modularity and complexity: the second board simplified the original division of responsibilities but made the inter-processor link the most fragile part of the system.
+
+1. Introduction
+
+1.1 Problem Statement
+
+Solar trackers must continuously trade accuracy against stability. The control loop reads light intensity from several points across a panel, computes which side receives more energy, and drives actuators toward equilibrium. Two difficulties dominate this problem. First, the input signal is noisy: indoor lighting flickers, clouds pass, and individual sensors disagree, so a naive proportional response produces actuators that oscillate continuously. Second, the actuators are heterogeneous: servos are precise and fast, while 24 V flywheel motors are coarse, heavy and must never chatter. A single control law cannot serve both without degrading one of them.
+
+1.2 Proposed Solution
+
+The system samples four digital lux sensors through an I2C multiplexer, derives a normalized light balance per axis, and feeds two independent control laws — one for the servos, one for the motors — with filtering and hysteresis applied at both stages. The user interacts through a web interface served by the ESP32, switchable between manual mode (direct commands) and tracking mode (autonomous operation).
+
+2. System Architecture
+
+2.1 Generation 1.0 — Dual-Board Design
+
+The first generation used an STM32F103C8T6 as the control unit and an ESP32-C3 as the network front end. The two devices exchanged twenty-character ASCII frames over SPI: the ESP32 translated HTTP requests into a compact fixed-width command frame, and the STM32 parsed it into motor speeds, directions and servo angles. Project configuration was managed with STM32CubeMX and built with the Keil MDK-ARM toolchain.
+
+This division had real advantages — networking and real-time control did not compete for the same CPU — but the SPI link became the dominant source of failures. Command frames could be lost on a full queue, a failed transaction could silently drop a command while the web interface still reported success, and diagnosing the link required watching both processors simultaneously. The bridge accumulated 519 lines of protocol, queueing and error-recovery code.
+
+2.2 Generation 2.0 — Single-Board Design
+
+The second generation removes the STM32 entirely. The control logic was ported to the ESP32-C3 and the SPI bridge was deleted. The web application code was not modified: the layer that previously transmitted frames was replaced by a local handler exposing the same three methods and parsing the same frame format, so commands are now applied directly instead of being forwarded.
+
+The migration removed 519 lines of inter-processor protocol and replaced them with 162 lines of local command handling. Of the original control code, the application logic — ramp generation, angle limits, tracking law, tuning constants — transferred almost unchanged; only the hardware access layer was rewritten, from the STM32 HAL to the ESP32 LEDC and I2C drivers.
+
+3. Control Design
+
+3.1 Light Acquisition
+
+Four BH1750 digital lux sensors are connected behind a TCA9548A eight-channel I2C multiplexer, since all BH1750 devices share the same fixed address. A non-blocking state machine selects one channel at a time, triggers a one-shot high-resolution measurement, waits for conversion and reads the result. A completed cycle over the four channels produces one control update, and the readings are combined into left, right, up and down averages.
+
+3.2 Tracking Law
+
+The servo control law works on a normalized balance rather than absolute illuminance, so that it behaves consistently in dim and bright conditions:
+
+up = L0 + L3
+down = L2 + L1
+error = (up - down) / sum
+target = 90 + error * KP
+
+The error is filtered with a first-order low-pass filter (time constant 250 ms) and passed through a hysteresis deadband that engages above 7 percent imbalance and releases below 5 percent. This two-threshold arrangement eliminates the continuous micro-corrections that a single threshold would produce. Below a total illuminance of 20 lux the system takes no action at all, because the signal is no longer informative.
+
+3.3 Actuator Control
+
+Servos are driven at 50 Hz with pulses calibrated between 500 and 2500 microseconds, and every command is clamped to the mechanical window of 30 to 150 degrees. Commands never reach the hardware directly: a ramp generator advances the position at 90 degrees per second in 5-millisecond steps, storing position in millidegrees to avoid the truncation that integer-degree storage would cause. The same ramp serves manual and tracking modes, so the two feel identical to the observer.
+
+The three 24 V flywheel motors use a separate law because they are coarse actuators: a 30 lux deadband, a lower gain, and pulse-width modulation clamped between a minimum that overcomes static friction and a maximum that protects the mechanics. Their speed inputs are active-low — a logical value of zero keeps the driver input high and the motor stopped — which required inverting the duty cycle in software on the ESP32, whose PWM peripheral has no hardware inversion.
+
+4. User Interface
+
+The ESP32 hosts a self-contained web application: it creates its own WiFi access point, runs a captive portal so that connecting devices open the control page automatically, and serves pages for manual control, system status, command history and camera streaming. In tracking mode the manual controls are locked, while an emergency stop remains available at all times.
+
+5. Results and Validation
+
+Version 2.0 compiles to 1.2 MB of flash (91 percent of the default partition) and 39 KB of static RAM, and has been flashed and executed on hardware. Servo initialisation is verified: both axes move to their centre position at start-up. Validation of the lux acquisition chain, the 24 V motor drive and the tracking mode is in progress.
+
+6. Key Responsibilities and Achievements
+
+Developed a solar-tracking control system for a satellite demonstrator, first on a dual-microcontroller architecture and subsequently consolidated onto a single ESP32-C3.
+
+Programmed embedded firmware in C for the STM32F103 using the STM32 HAL, implementing the tracking control law, servo ramp generation and motor pulse-width modulation with boot-time self-diagnostics on timer configuration and PWM polarity.
+
+Ported the complete control layer to the ESP32-C3, replacing STM32 HAL primitives with the ESP32 LEDC and I2C drivers while preserving the control mathematics, tuning constants and command protocol.
+
+Designed a normalized light-balance control law with low-pass filtering and hysteresis deadband that keeps servos stable under flickering indoor lighting, and a separate coarse law with a wider deadband for the 24 V flywheel motors.
+
+Integrated four BH1750 lux sensors behind a TCA9548A I2C multiplexer with a non-blocking acquisition state machine and automatic bus recovery.
+
+Eliminated the inter-processor SPI bridge — 519 lines of protocol, queueing and error handling — by replacing it with a local command handler that preserves the existing web interface without modification.
+
+Implemented the web interface as a WiFi access point with captive portal, manual and autonomous operating modes, status monitoring and camera streaming.
+
+7. Technologies and Tools
+
+Programming Languages: C, C++, JavaScript, HTML, CSS
+
+Development Environments: STM32CubeIDE, Keil MDK-ARM, STM32CubeMX, Arduino IDE, Visual Studio Code
+
+Hardware: STM32F103C8T6, ESP32-C3, ESP32-CAM, ESP32-S3, TCA9548A I2C multiplexer, four BH1750 lux sensors, two MG90S servos, three 24 V flywheel motors
+
+Protocols and Interfaces: SPI, I2C, PWM, UART, WiFi, HTTP
+
+Additional: embedded firmware development, closed-loop control, sensor multiplexing, web development, hardware bring-up and validation
