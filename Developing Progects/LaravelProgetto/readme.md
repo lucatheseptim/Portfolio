@@ -1,51 +1,95 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+# MyGalleryAlbum — Photo Gallery Web Application
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+A full-stack web application for creating and browsing photo albums, built with
+Laravel. Users register, create albums, upload photos and organise everything by
+category; visitors browse a public gallery.
 
-## About Laravel
+Live demo: **https://mygalleryalbum.altervista.org/**
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **User accounts** — registration, login, password reset (Laravel's built-in auth)
+- **Albums** — create, edit, delete, browse; each album belongs to a user
+- **Photos** — upload and manage images, associated with an album
+- **Categories** — albums are grouped into categories, manageable from the back end
+- **Public gallery** — browsing without authentication, with filtering
+  by album and by category
+- **Admin area** — separate views for content management
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications. A superb combination of simplicity, elegance, and innovation give you tools you need to build any application with which you are tasked.
+## Technology stack
 
-## Learning Laravel
+| | |
+|---|---|
+| Framework | Laravel 5.8 |
+| Language | PHP 7 |
+| Database | MySQL (Eloquent ORM, migrations) |
+| Templating | Blade |
+| Front end | HTML, CSS, JavaScript, Bootstrap |
+| Asset build | Laravel Mix (webpack) |
 
-Laravel has the most extensive and thorough documentation and video tutorial library of any modern web application framework. The [Laravel documentation](https://laravel.com/docs) is thorough, complete, and makes it a breeze to get started learning the framework.
+## Project structure
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 900 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+```
+app/
+  Http/Controllers/     AlbumsController, GalleryController, PhotosController,
+                        AlbumCategoryController, UserController, HomeController,
+                        PageController, WelcomeController
+  Models/               Album, Photo, AlbumsCategory, CalbumCategory
+database/migrations/    users, password_resets, photos, albums, album_categories
+resources/views/        admin, albums, auth, categories, gallery, images,
+                        layouts, partials, user
+routes/web.php          application routes
+```
 
-## Laravel Sponsors
+## Routing design
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](http://patreon.com/taylorotwell):
+Three route groups keep concerns separated:
 
-- **[Vehikl](http://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Styde](https://styde.net)**
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
+- **Authenticated area** (`middleware => auth`) — album management, user
+  management and the admin views. Resource controllers handle the standard
+  CRUD verbs; several routes constrain their parameters with regular
+  expressions so identifiers are always numeric.
+- **Gallery (public)** — prefixed with `gallery/`, exposes album listings and
+  per-album image browsing without requiring a session. The root path renders
+  the gallery index.
+- **Authentication** — `Auth::routes()` provides the standard login and
+  registration endpoints.
 
-## Contributing
+## Database schema
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
+| Table | Purpose |
+|---|---|
+| `users` | account credentials and profile |
+| `photos` | image records, linked to an album |
+| `albums` | album metadata, owned by a user |
+| `album_categories` | category definitions for grouping albums |
+| `password_resets` | token storage for password recovery |
 
-## Security Vulnerabilities
+## Running locally
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+```bash
+composer install
+cp .env.example .env        # configure database credentials
+php artisan key:generate
+php artisan migrate
+php artisan serve
+```
 
-## License
+Assets:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+```bash
+npm install
+npm run dev                 # or: npm run production
+```
+
+## Notes
+
+- `.env` (with real credentials) is intentionally **not** included in this
+  repository; only `.env.example` is versioned. Database settings are read
+  from the environment via `env('DB_*')`.
+- The Public folder contains the `.htaccess` used for Apache deployment on
+  shared hosting.
+
+## Author
+
+Luca Airoldi
