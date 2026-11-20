@@ -26,7 +26,7 @@ sending them over SPI. `WebServerHandler.h` was not modified.
 
 | Removed | Added |
 |---|---|
-| `user_spi.c` — 519 lines of SPI protocol and queueing | `sat_link.h` — 162 lines, local command parser |
+| `user_spi.c` — 519 lines of SPI protocol and queueing | `sat_link.h` — local command parser and actuator dispatch |
 | STM32 firmware, second power rail, second toolchain | — |
 | SPI wiring (4 wires + CS) | — |
 
@@ -41,14 +41,14 @@ sending them over SPI. `WebServerHandler.h` was not modified.
 
 | File | Responsibility |
 |---|---|
-| `sat_pins.h` | pin assignment for the LuatOS CORE ESP32-C3 board |
-| `sat_config.h` | tuning constants (servo range, tracking, motor limits) |
+| `sat_pins.h` | pin assignment, taken from the wiring harness (connector H1) |
+| `sat_config.h` | tuning constants (servo range, tracking, motor limits, timeouts) |
 | `sat_ledc.h` | LEDC compatibility shim (Arduino-ESP32 core 2.x / 3.x) |
 | `sat_servo.cpp` | angle → pulse → duty, 90 °/s ramp, 30–150° command window |
 | `sat_motor.cpp` | three 24 V motors, 1 kHz PWM, direction pins |
 | `sat_track.cpp` | tracking control law, deadband, motor commands |
 | `sat_sensors.cpp` | TCA9548A multiplexing, BH1750 reads, bus recovery |
-| `sat_link.h` | drop-in replacement for the SPI handler |
+| `sat_link.h` | drop-in replacement for the SPI handler, plus command fail-safe |
 | `legacy/SPIHandler_SPI.h` | previous SPI implementation, kept for reference |
 
 ## Control law
@@ -75,23 +75,46 @@ Motors use a separate law, because they are coarse actuators and must not
 oscillate: a 30 lux deadband, gain 8, PWM clamped between 200 and 999. The Z axis
 does not track a gradient — it seeks an intermediate light band (50–300 lux).
 
+## Fail-safe
+
+The first port kept motors at the last commanded speed forever: closing the web
+page (or losing WiFi) left the 24 V motors running. That is not acceptable on a
+motorised mechanism, so `sat_link.h` now stops every motor when no command has
+arrived for 500 ms in manual mode.
+
+```c
+if ((uint32_t)(millis() - last_cmd_ms) > MANUAL_TIMEOUT_MS) {
+    StopAllMotors();
+}
+```
+
 ## Pinout (LuatOS CORE ESP32-C3)
+
+Pin assignment follows the demonstration-cube wiring harness (connector H1), not
+free pin choice: the drivers are wired to these pins and any other assignment
+leaves the motor inputs floating.
 
 | Signal | GPIO | | Signal | GPIO |
 |---|---|---|---|---|
-| I²C SDA | 8 | | Motor 2 PWM | 6 |
-| I²C SCL | 9 | | Motor 2 DIR | 1 |
-| Servo 1 | 3 | | Motor 3 PWM | 7 |
-| Servo 2 | 4 | | Motor 3 DIR | 10 |
-| Motor 1 PWM | 5 | | Status LED | 12 |
-| Motor 1 DIR | 0 | | | |
+| Motor 1 PWM | 2 | | Motor 1 DIR | 7 |
+| Motor 2 PWM | 3 | | Motor 2 DIR | 11 |
+| Motor 3 PWM | 10 | | Motor 3 DIR | 9 |
+| Servo 1 | 6 | | I²C SDA | 4 |
+| Servo 2 | 8 | | I²C SCL | 5 |
+| Status LED | 12 | | | |
 
-`GPIO11` is VDD_SPI and must not be used. `GPIO8/9` are strapping pins, held high
-at boot by the I²C bus pull-ups.
+The direction pins are driven **high** at start-up, not low: `DIR3` sits on
+`GPIO9`, a strapping pin, and holding it low across a reset would put the chip
+into download mode instead of running the application.
+
+`GPIO11` (`DIR2`) is the module's VDD_SPI pin. The harness uses it as a GPIO and
+it works on this board, but it is the first suspect if flash errors appear.
 
 ## Build
 
-Arduino IDE, board **ESP32C3 Dev Module**.
+Arduino IDE, board **AirM2M CORE ESP32C3** — the manufacturer of the LuatOS CORE
+ESP32-C3 module. The default ESP32-C3 core settings apply (4 MB flash, 80 MHz,
+default partition scheme).
 
 ```
 Sketch uses 1 204 233 bytes (91%) of program storage space.
@@ -109,8 +132,9 @@ duty is inverted in software.
 | Compiles and flashes | ✅ |
 | Servo initialisation (both axes to 90°) | ✅ verified on hardware |
 | Web interface | ✅ unchanged from version 1.0 |
+| 24 V motor drive | ✅ verified on hardware, all three axes |
+| Command fail-safe | ✅ verified: motors stop within 500 ms |
 | Lux sensor acquisition | ⏳ pending validation |
-| 24 V motor drive | ⏳ pending validation |
 | Tracking mode | ⏳ pending validation |
 
 ## Notes

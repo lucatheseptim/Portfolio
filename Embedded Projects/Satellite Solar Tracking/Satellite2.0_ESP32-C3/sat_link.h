@@ -13,7 +13,7 @@
  * Sostituto locale dello SPIHandler.
  *
  * PERCHE' ESISTE
- * Il tuo WebServerHandler chiama, su una istanza di SPIHandler:
+ * Il WebServerHandler chiama, su una istanza di SPIHandler:
  *     begin(), receiveFromWeb(String), handleSPI(), isReady(), clearQueue()
  * e gli passa frame ASCII di 20 caratteri.
  *
@@ -21,8 +21,10 @@
  * questo handler riceve gli stessi frame e li applica direttamente ai motori,
  * ai servo e alla modalita' di inseguimento.
  *
- * Il web server non cambia: basta che l'oggetto che espone questa interfaccia
- * sia questo qui invece dello SPIHandler.
+ * FAIL-SAFE (novita' rispetto al porting iniziale)
+ * Se in modalita' manuale non arriva nessun comando per MANUAL_TIMEOUT_MS,
+ * tutti i motori vengono fermati. Senza questo, chiudendo la pagina web i
+ * motori restavano all'ultima velocita' ricevuta, per sempre.
  *
  * FORMATO DEL FRAME (identico a quello che l'STM32 si aspettava):
  *   0      'S'
@@ -38,7 +40,7 @@
  */
 class SatLink {
 public:
-    SatLink() : initialized(false) {}
+    SatLink() : initialized(false), last_cmd_ms(0) {}
 
     /* Inizializza attuatori e sensori. Da chiamare in setup(). */
     bool begin()
@@ -60,6 +62,7 @@ public:
 
         Mode_Flag = 0;
         track_mode_prev = 0;
+        last_cmd_ms = millis();
 
         initialized = true;
         return true;
@@ -82,7 +85,14 @@ public:
                 Track_OnEnter();
             }
             Track_Process();
+            last_cmd_ms = millis();   /* in inseguimento il comando non serve */
+        } else {
+            /* FAIL-SAFE: senza comandi recenti, ferma tutto. */
+            if ((uint32_t)(millis() - last_cmd_ms) > MANUAL_TIMEOUT_MS) {
+                StopAllMotors();
+            }
         }
+
         track_mode_prev = Mode_Flag;
     }
 
@@ -103,6 +113,8 @@ public:
         }
 
         uint8_t mode = (uint8_t)(message[1] - '0');
+
+        last_cmd_ms = millis();
 
         if (mode != Mode_Flag) {
             Mode_Flag = mode;
@@ -150,8 +162,17 @@ private:
     static const int FRAME_SIZE = 20;
 
     bool initialized;
-    volatile uint8_t Mode_Flag = 0;
-    uint8_t track_mode_prev = 0;
+    volatile uint8_t Mode_Flag;
+    uint8_t track_mode_prev;
+    uint32_t last_cmd_ms;
+
+    /* Ferma tutti e tre i motori. */
+    void StopAllMotors()
+    {
+        Motor_Stop(0);
+        Motor_Stop(1);
+        Motor_Stop(2);
+    }
 
     static uint16_t Parse3(const String& s, int offset)
     {

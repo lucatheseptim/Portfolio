@@ -7,6 +7,14 @@
  * Differenza sostanziale rispetto allo STM32: la TIM3 era configurata con
  * OCPolarity = LOW, quindi il "fermo" corrispondeva al pin ALTO e il duty
  * logico aumentava il tempo BASSO. LEDC non inverte: l'inversione e' qui.
+ *
+ * NOTA SUI PIN DI DIREZIONE
+ * All'inizializzazione i DIR vengono messi ALTI, non bassi. Due motivi:
+ *   1) e' quello che faceva il progetto di riferimento funzionante
+ *      (motors_init: digitalWrite(DIRn, HIGH));
+ *   2) DIR3 e' su GPIO9, che e' un pin di strapping: se resta basso durante
+ *      un reset, l'ESP32-C3 entra in modalita' download e il firmware non
+ *      parte. Tenerlo alto evita il problema.
  */
 
 static uint8_t motor_ledc_ch[3]  = {0, 1, 2};
@@ -27,10 +35,11 @@ void Motor_Init(uint8_t pin[3], uint8_t ch[3], uint8_t dir_pin[3])
         motor_pin[i]     = pin[i];
         motor_dir_pin[i] = dir_pin[i];
 
-        SAT_LEDC_SETUP(ch[i], pin[i], MOTOR_LEDC_FREQ_HZ, MOTOR_LEDC_RES_BITS);
-
+        /* Direzione: ALTA subito, prima di configurare il PWM. */
         pinMode(dir_pin[i], OUTPUT);
-        digitalWrite(dir_pin[i], LOW);
+        digitalWrite(dir_pin[i], HIGH);
+
+        SAT_LEDC_SETUP(ch[i], pin[i], MOTOR_LEDC_FREQ_HZ, MOTOR_LEDC_RES_BITS);
 
         /* Fermo = duty logico 0 = pin alto. */
         SAT_LEDC_WRITE(ch[i], pin[i], MOTOR_ACTIVE_LOW ? MOTOR_DUTY_MAX : 0);

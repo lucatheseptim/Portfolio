@@ -47,6 +47,21 @@
 #define TRK_Z_LUX_LOW         50.0f
 #define TRK_Z_LUX_HIGH        300.0f
 
+/* ---------------- Sicurezza ---------------- */
+
+/*
+ * FAIL-SAFE: in modalita' manuale, se non arriva nessun comando dal web per
+ * questo tempo, tutti i motori vengono fermati.
+ *
+ * Senza, chiudendo la pagina (o perdendo la WiFi) i motori restavano
+ * all'ultima velocita' ricevuta, per sempre. Con motori a 24 V non e'
+ * accettabile.
+ *
+ * 500 ms: abbastanza per non fermarsi tra due comandi ravvicinati dello slider,
+ * abbastanza poco per essere una protezione reale.
+ */
+#define MANUAL_TIMEOUT_MS     500
+
 /* ---------------- LEDC (PWM dell'ESP32) ---------------- */
 
 /*
