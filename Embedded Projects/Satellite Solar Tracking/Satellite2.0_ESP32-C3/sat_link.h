@@ -155,6 +155,12 @@ public:
         return true;
     }
 
+    /* Rinfresca il timer del fail-safe.
+     * La chiama l'heartbeat della pagina (una richiesta al secondo su
+     * /api/state): finche' la pagina e' aperta i motori restano accesi,
+     * quando si chiude le richieste cessano e i motori si fermano. */
+    void touch() { last_cmd_ms = millis(); }
+
     /* Modalita' corrente: 0 manuale, 1 inseguimento. */
     uint8_t mode() const { return Mode_Flag; }
 

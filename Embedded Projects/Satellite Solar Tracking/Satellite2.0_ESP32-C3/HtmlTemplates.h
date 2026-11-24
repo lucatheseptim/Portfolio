@@ -368,6 +368,10 @@ public:
             setDefaultControlValues();
             setModeButtonHighlight(0);
             loadApiState();
+            /* Heartbeat: keeps the motor fail-safe alive while the page is open.
+             * When the page is closed the requests stop and the firmware
+             * stops the motors after the configured timeout. */
+            setInterval(loadApiState, 1000);
         });
     </script>
 </head>

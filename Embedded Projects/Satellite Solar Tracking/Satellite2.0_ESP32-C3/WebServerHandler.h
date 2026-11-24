@@ -611,6 +611,10 @@ private:
     }
 
     void handleApiState() {
+        /* Heartbeat: the page polls this endpoint every second while it is open.
+         * This refreshes the motor fail-safe timer inside SatLink. */
+        spiHandler.touch();
+
         unsigned long now = millis();
 
         unsigned long controlAge = (controlState.seq == 0) ? 0 : (now - controlState.updateMillis);

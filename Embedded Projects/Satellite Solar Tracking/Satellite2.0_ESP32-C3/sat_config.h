@@ -50,17 +50,18 @@
 /* ---------------- Sicurezza ---------------- */
 
 /*
- * FAIL-SAFE: in modalita' manuale, se non arriva nessun comando dal web per
+ * FAIL-SAFE: in modalita' manuale, se non arriva nessun segnale di vita per
  * questo tempo, tutti i motori vengono fermati.
  *
- * Senza, chiudendo la pagina (o perdendo la WiFi) i motori restavano
- * all'ultima velocita' ricevuta, per sempre. Con motori a 24 V non e'
- * accettabile.
+ * "Segnale di vita" = un comando dalla pagina, oppure l'heartbeat che la
+ * pagina invia ogni secondo su /api/state. Quindi:
+ *   - pagina aperta  -> i motori restano alla velocita' impostata
+ *   - pagina chiusa  -> i motori si fermano dopo questo tempo
  *
- * 500 ms: abbastanza per non fermarsi tra due comandi ravvicinati dello slider,
- * abbastanza poco per essere una protezione reale.
+ * 3000 ms: tollera una perdita momentanea di pacchetti WiFi senza fermare
+ * il motore, ma resta una protezione reale se la pagina sparisce.
  */
-#define MANUAL_TIMEOUT_MS     500
+#define MANUAL_TIMEOUT_MS     3000
 
 /* ---------------- LEDC (PWM dell'ESP32) ---------------- */
 
