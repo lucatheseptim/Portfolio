@@ -8,7 +8,7 @@ The project exists in two generations.
 
 | Version | Architecture | Folder |
 |---|---|---|
-| **1.0** | Two boards: ESP32-C3 (web UI) + STM32F103 (control), linked over SPI | `Satellite1.0_STM32/` |
+| **1.0** | Two boards: ESP32-C3 (web UI) + STM32F103 (control), linked over SPI | `Satellite1.0_OLD_STM32/` |
 | **2.0** | Single board: ESP32-C3 runs control and web UI | `Satellite2.0_ESP32-C3/` |
 
 ## Why a second version
@@ -31,5 +31,6 @@ reused unchanged. The result is one firmware, one board, one configuration.
 
 ## Contents
 
-- `Satellite1.0_STM32/` — STM32F103 firmware (CubeMX project, HAL, Keil toolchain)
+- `Satellite1.0_OLD_STM32/` — STM32F103 firmware (CubeMX project, HAL, Keil toolchain)
 - `Satellite2.0_ESP32-C3/` — ESP32-C3 firmware (Arduino framework, single board)
+- `images/` — wiring diagram and web interface previews (bilingual captions)
